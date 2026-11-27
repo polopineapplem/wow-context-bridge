@@ -2,20 +2,16 @@
 
 ## 当前状态（每次会话结束时重写本节）
 
-更新：2026-11-27（第二次会话，Mac，无游戏）。
+更新：2026-11-27（第三次会话，Mac，**真实游戏**）。
 
-- 设计（D12）：游戏电脑上的桌面客户端（Claude Desktop、ChatGPT 桌面客户端的 Codex 设置、Codex）通过本地只读 MCP `mcp-server.ps1` 读取数据。不上云、不同步、不做隧道。DESIGN/CONTEXT 已更新。
-- 已完成，**仅模拟测试**（Mac + PowerShell 7.7.0）：
-  - T1：读取器启动时从末尾扫描，只发布最新完整快照。
-  - T2：`history.jsonl` 只在发生变化时记录。
-  - T3：`mcp-server.ps1`，4 个工具，外加 `what_next` 提示。
-  - T11：`install-mcp.bat` 一键写入客户端配置。
-  - T12：顾问规则写在 `docs/ADVISOR.md`。
-- PowerShell 5.1：已代码审查并加数组序列化修复，未实际运行（T10）。
-- 安装说明写在 `INSTALL.md`（用户、朋友、帮忙安装的 AI 都适用）。`start.bat` 会自动查找游戏目录；`check-setup.bat` 只读，逐项检查安装状态。
-- **下一步要在 Windows 游戏电脑上做（T5、T4、T10）：** `git pull`，然后按 INSTALL.md 安装，直到 `check-setup.bat` 全部 PASS，再问“这个角色下一步做什么”。另外用 5.1 跑一遍测试。
-- 仓库已重建为干净的公开仓库（D15、D16）；旧完整历史在私有的 `wow-context-bridge-archive`。别的电脑上旧的 checkout 要**重新 clone**。提交身份用 GitHub noreply，不用真名。
-- 插件 Lua 没改，游戏不需要重新加载。
+- **macOS 第一次实机运行通过**（详见 `docs/VALIDATION.md`“2026-11-27 macOS 实机测试”）：check-setup 全 PASS；真实 Claude Desktop 通过 MCP 读到 live 数据；退出游戏 65 秒后 stale=true；读到时数据一般 2–13 秒前。
+- **修复（D18）**：macOS 不允许 Claude 启动的 MCP 读 `~/Documents`（开权限也不行）。checkout 在文稿/桌面/下载/iCloud 时，`player.json`、`history.jsonl` 和 MCP 服务器副本放 `~/Library/Application Support/wow-context-bridge`；install-mcp 指向副本，start 刷新副本，check-setup 检查副本。有回归测试。
+- **插件 0.2.0（D19）**：从 Forever 客户端读取任务等级、日志分类、目标说明、地图位置，ADVISOR 禁止用经典版记忆。已在游戏 /reload 后实机确认（api 探测结果在 VALIDATION）。
+- 本机：读取器由 `start.command` 在终端窗口运行；Claude/Codex 配置指向 Application Support 里的副本（有 .bak）。
+- 测试（PowerShell 7.7.0，`PWSH=~/.local/bin/pwsh`）：test-reader、test_mcp、test_install_mcp、test_check_setup 全过；test_addon 用 lupa 2.8（临时 venv）通过。
+- **未做/未验证**：ChatGPT 桌面应用的 Codex（T4）；游玩中的任务/区域/装备变化（T7，本轮角色没动）；Claude Chat 里用户提问的回答未记录；Windows 上 5.1 实测（T10）。
+- **新任务**：T15 Forever 知识库（精英、掉落、NPC 位置）；T16 云端远程 MCP（D20，用户已选方案 B 与推送参数）。
+- **下一步**：做 T16（单独会话）；本地方面在 ChatGPT 桌面应用的 Codex 里问“这个角色下一步做什么？”并在正常游玩时观察 T7 变化。
 
 ---
 

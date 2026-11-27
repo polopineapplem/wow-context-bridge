@@ -74,6 +74,16 @@ PowerShell 5.1：只做了代码审查。已加 `Remove-TypeData System.Array` �
 
 证明：插件、聊天日志、读取器、MCP 服务器整条链路在 macOS 实机可用，中文正常。尚未证明的内容见下方各小节（真实 AI 客户端、游玩中的变化、退出后的过期）。
 
+### 同日后续：真实 Claude Desktop、权限问题修复、过期、插件 0.2.0（实机）
+
+- **Claude Desktop 第一次失败**：完全退出重开后，Claude 启动 `pwsh …/Documents/wow-context-bridge/mcp-server.ps1`，日志 `~/Library/Logs/Claude/mcp-server-wow-context.log` 报 “Access to the path … is denied”，工具不出现。在“文件与文件夹”给 Claude 开文稿权限并重启后仍然被拒。按 D18 修复（运行文件放 `~/Library/Application Support/wow-context-bridge`）。
+- **修复后**：重启读取器和 Claude，Claude 日志显示 `initialize`、`tools/list`、`prompts/list` 成功；Claude Code 会话里出现 4 个 `wow-context` 工具，`get_player_context` 返回 status=snapshot_received、freshness 10 秒 / live、24 个任务、12 件装备、214 个已完成任务。Claude Chat 中由用户提问的回答尚未单独记录。
+- **过期**：游戏于 14:48 左右关闭。最后快照 capturedAt 14:48:24（序号 36）；14:49:30 年龄 65 秒时 stale=true；读取器仍在运行，MCP summary 为 “game not sending”。符合 60 秒规则。
+- **刷新间隔**：25 次连续更新中，读到时快照年龄 2–13 秒，平均约 4 秒（插件 15 秒一次，读取器 2 秒检查一次）。
+- **插件 0.2.0（D19），/reload 后**：`api` 结果：`C_QuestLog.GetQuestsOnMap`、`C_QuestLog.GetNextWaypoint`、`C_QuestLog.GetSelectedQuest`/`SetSelectedQuest`、`GetQuestLogQuestText` 存在；`SelectQuestLogEntry`、`GetQuestLogSelection` 不存在。24 个任务全部有 `level`、`header`（如 贫瘠之地、石爪山脉、哀嚎洞穴、影牙城堡）和 `objectivesText`（中文正常）；16 个有 `poi`（mapID 1413 坐标）；`GetNextWaypoint` 对这些任务都没有返回路点；没有任务 `suggestedGroup>0`。errors=[]。
+- **未观察到（T7）**：本轮角色基本停在十字路口，没有任务进度、区域或装备变化，`history.jsonl` 只有基线。坐标差分未验证。
+- **未测试**：ChatGPT 桌面应用（Codex，T4）。
+
 ## 尚未覆盖
 
 - 多次角色切换、长时间运行、断电、重启和文件轮转压力。
