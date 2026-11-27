@@ -60,6 +60,20 @@ PowerShell 5.1：只做了代码审查。已加 `Remove-TypeData System.Array` �
 
 另外修复一个 bug：`get_player_context` 的装备列表曾被合并成一条记录（PowerShell 函数返回数组的写法造成），已加回归测试（test_mcp.py 现为 21 项）。注册表查找和 Windows 盘符查找只在 Windows 上运行，未测试。
 
+## 2026-11-27 macOS 实机测试
+
+**真实游戏**，macOS 上的第一次实机运行（与上面的模拟测试分开）。环境：WoW Forever macOS 版 1.60.1.71139 zhCN，安装在 `/Applications/World of Warcraft/_forever_`，用户通过 Battle.net 启动并登录；PowerShell 7.7.0；读取器由 `start.command` 在单独的终端窗口运行。角色姓名不记录。
+
+| 检查 | 结果 |
+| --- | --- |
+| `check-setup.ps1` | 8 项全部 PASS：平台 macOS / PS 7.7.0、游戏目录、插件与 checkout 一致、游戏日志含 LCB1、读取器在运行、MCP 4 个工具、Claude Desktop 已配置、Codex 已配置 |
+| `player.json` | status=`snapshot_received`；22 级亡灵法师；贫瘠之地 / 十字路口；24 个任务；capabilities 全部 true；errors=[]；questLogMayBeIncomplete=true |
+| 连续性 | 序号 2 → 4 → 5，相邻 capturedAt 相差 15 秒；年龄 1–15 秒；之后序号 7 年龄 15 秒、stale=false |
+| MCP（stdio，直接调用 `mcp-server.ps1`） | `get_player_context` 返回 freshness 12 秒 / live；24 个任务（如 变异皮革 9/20）；12 件已穿装备；214 个已完成任务 |
+| `history.jsonl` | 启动后 1 行基线记录 |
+
+证明：插件、聊天日志、读取器、MCP 服务器整条链路在 macOS 实机可用，中文正常。尚未证明的内容见下方各小节（真实 AI 客户端、游玩中的变化、退出后的过期）。
+
 ## 尚未覆盖
 
 - 多次角色切换、长时间运行、断电、重启和文件轮转压力。
