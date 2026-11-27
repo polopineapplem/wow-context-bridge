@@ -14,7 +14,11 @@ $ErrorActionPreference='Stop'
 # Windows PowerShell 5.1: without this, ConvertTo-Json can emit arrays as {"value":[...],"Count":n}.
 try { Remove-TypeData System.Array -ErrorAction Stop } catch { }
 . (Join-Path $PSScriptRoot 'lib/common.ps1')
-if (!$OutputPath) { $OutputPath=Join-Path $PSScriptRoot 'player.json' }
+if (!$OutputPath) {
+  $runtime=Get-RuntimeDir $PSScriptRoot
+  if (!(Test-Path -LiteralPath $runtime)) { $null=New-Item -ItemType Directory -Path $runtime -Force }
+  $OutputPath=Join-Path $runtime 'player.json'
+}
 if (!$SkipInstall -or !$LogPath) {
   try { $GameRoot=Resolve-ForeverRoot $GameRoot } catch { Write-Host $_.Exception.Message -ForegroundColor Yellow; exit 2 }
   Write-Host "Game folder: $GameRoot"
@@ -32,6 +36,8 @@ if (!$SkipInstall) {
   if (!(Test-Path -LiteralPath $addons)) { $null=New-Item -ItemType Directory -Path $addons -Force }
   Copy-Item (Join-Path $PSScriptRoot 'LocalContext') $addons -Recurse -Force
   Write-Host "Addon installed: $(Join-Path $addons 'LocalContext') (restart the game if it was already running)"
+  # Keep the AI clients' copy of the MCP server current (macOS, checkout in a protected folder).
+  try { $null=Sync-McpServer $PSScriptRoot } catch { Write-Warning "Could not refresh the MCP server copy: $($_.Exception.Message)" }
 }
 $utf8=New-Object System.Text.UTF8Encoding($false,$true)
 

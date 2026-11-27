@@ -12,8 +12,9 @@ $ErrorActionPreference='Stop'
 try { Remove-TypeData System.Array -ErrorAction Stop } catch { }
 . (Join-Path $PSScriptRoot 'lib/common.ps1')
 $utf8=New-Object Text.UTF8Encoding($false)
-if (!$PlayerPath) { $PlayerPath=Join-Path $PSScriptRoot 'player.json' }
-$server=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'mcp-server.ps1'))
+$runtime=Get-RuntimeDir $PSScriptRoot
+if (!$PlayerPath) { $PlayerPath=Join-Path $runtime 'player.json' }
+$server=Sync-McpServer $PSScriptRoot -NoCopy
 $results=New-Object Collections.Generic.List[object]
 function Add-Result($step,$status,$detail,$fix) {
   $results.Add([pscustomobject]@{step=$step;status=$status;detail=$detail;fix=$fix})
@@ -78,11 +79,18 @@ else {
   } catch { Add-Result 'reader' 'FAIL' 'player.json is unreadable.' 'Restart start.bat or start.command.' }
 }
 
-# 6. MCP server answers
+# 6. MCP server answers (on macOS it may be a copy outside the checkout, D18)
+$repoServer=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'mcp-server.ps1'))
+if ($server -ne $repoServer) {
+  if (!(Test-Path -LiteralPath $server)) { Add-Result 'mcp copy' 'FAIL' "AI clients run $server, which is missing (checkout is in a folder macOS keeps private from apps)." 'Run install-mcp.command, then fully quit and reopen the AI client.' }
+  elseif ((Sha $server) -ne (Sha $repoServer)) { Add-Result 'mcp copy' 'WARN' "$server differs from this checkout." 'Run start.command or install-mcp.command to refresh it.' }
+  else { Add-Result 'mcp copy' 'PASS' "AI clients run a copy outside the protected checkout: $server" '' }
+}
 try {
   $psi=New-Object Diagnostics.ProcessStartInfo
   $psi.FileName=(Get-Process -Id $PID).Path
-  $psi.Arguments=('-NoProfile -ExecutionPolicy Bypass -File "{0}" -PlayerPath "{1}"' -f $server,$PlayerPath)
+  $smoke=$server; if (!(Test-Path -LiteralPath $smoke)) { $smoke=$repoServer }
+  $psi.Arguments=('-NoProfile -ExecutionPolicy Bypass -File "{0}" -PlayerPath "{1}"' -f $smoke,$PlayerPath)
   $psi.UseShellExecute=$false; $psi.RedirectStandardInput=$true; $psi.RedirectStandardOutput=$true; $psi.RedirectStandardError=$true
   $proc=[Diagnostics.Process]::Start($psi)
   $in=New-Object IO.StreamWriter($proc.StandardInput.BaseStream,$utf8)

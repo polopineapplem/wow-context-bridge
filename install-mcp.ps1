@@ -14,8 +14,9 @@ $ErrorActionPreference='Stop'
 try { Remove-TypeData System.Array -ErrorAction Stop } catch { }
 . (Join-Path $PSScriptRoot 'lib/common.ps1')
 $utf8=New-Object Text.UTF8Encoding($false)
-$server=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'mcp-server.ps1'))
-if (!(Test-Path -LiteralPath $server)) { throw "mcp-server.ps1 not found next to this script: $server" }
+if (!(Test-Path -LiteralPath (Join-Path $PSScriptRoot 'mcp-server.ps1'))) { throw "mcp-server.ps1 not found next to this script: $PSScriptRoot" }
+# On macOS a checkout in Documents/Desktop/Downloads/iCloud is unreadable for AI clients, so they run a copy (D18).
+$server=Sync-McpServer $PSScriptRoot -NoCopy:($DryRun -or $Uninstall)
 $psExe=Get-PowerShellCommand
 $serverArgs=@('-NoProfile','-ExecutionPolicy','Bypass','-File',$server)
 $stamp=(Get-Date).ToString('yyyyMMdd-HHmmss')

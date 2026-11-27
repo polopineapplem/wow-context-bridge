@@ -9,6 +9,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 PWSH = os.environ.get('PWSH') or shutil.which('pwsh') or shutil.which('powershell.exe')
 assert PWSH, 'PowerShell not found; set PWSH'
 tmp = pathlib.Path(tempfile.mkdtemp(prefix='lcb-check-'))
+os.environ['WOW_CONTEXT_RUNTIME_DIR'] = str(tmp / 'runtime')  # never the real ~/Library/Application Support
 
 
 def check(cond, label):
@@ -47,6 +48,22 @@ check(out.strip() == str(macwow / '_forever_'), 'macOS layout (World of Warcraft
 code, out, err = ps(f". '{common}'; try {{ Resolve-ForeverRoot '{tmp / 'nowhere'}' }} catch {{ 'ERR:' + $_.Exception.Message }}")
 check(out.startswith('ERR:') and '_forever_' in out, 'wrong -GameRoot gives a clear error')
 
+# ---------- macOS protected folders (D18) ----------
+_, out, _ = ps(f". '{common}'; @('/U/a/Documents/repo','/U/a/Desktop/x','/U/a/Downloads/x','/U/a/Library/Mobile Documents/com~apple~CloudDocs/r','/U/a/DocumentsOld/r','/U/a/code/repo','/U/a/Documents') | ForEach-Object {{ [int](Test-MacProtectedPath $_ '/U/a') }}")
+check(out.split() == ['1', '1', '1', '1', '0', '0', '1'], 'Documents/Desktop/Downloads/iCloud are protected; look-alike names are not')
+if os.uname().sysname == 'Darwin':
+    home = tmp / 'home'
+    (home / 'Documents' / 'repo').mkdir(parents=True)
+    env = {k: v for k, v in os.environ.items() if k != 'WOW_CONTEXT_RUNTIME_DIR'}
+    env['HOME'] = str(home)
+    def rd(path):
+        p = subprocess.run([PWSH, '-NoProfile', '-Command', f". '{common}'; Get-RuntimeDir '{path}'"], capture_output=True, timeout=60, env=env)
+        return p.stdout.decode().strip()
+    check(rd(home / 'Documents' / 'repo') == str(home / 'Library' / 'Application Support' / 'wow-context-bridge'), 'macOS checkout in Documents: runtime files go to Application Support')
+    check(rd(tmp / 'elsewhere') == str(tmp / 'elsewhere'), 'macOS checkout elsewhere: runtime files stay in the checkout')
+else:
+    print('SKIP macOS runtime-dir test (not macOS)')
+
 # ---------- check-setup ----------
 game = wow1 / '_forever_'
 claude = tmp / 'Claude' / 'claude_desktop_config.json'
@@ -77,6 +94,13 @@ subprocess.run([PWSH, '-NoProfile', '-File', str(ROOT / 'install-mcp.ps1'), '-Cl
 code, st, data = run_check()
 non_pass = {k: v for k, v in st.items() if v != 'PASS' and k != 'platform'}
 check(code == 0 and not non_pass, f'complete setup passes every step (platform: {st["platform"]})')
+check(st.get('mcp copy') == 'PASS', 'runtime copy of the server is checked')
+(tmp / 'runtime' / 'mcp-server.ps1').write_text('# stale', encoding='utf-8')
+code, st, _ = run_check()
+check(st.get('mcp copy') == 'WARN', 'stale server copy is reported')
+(tmp / 'runtime' / 'mcp-server.ps1').unlink()
+code, st, _ = run_check()
+check(code == 1 and st.get('mcp copy') == 'FAIL', 'missing server copy fails')
 
 (addon / 'LocalContext.lua').write_text('-- old version\n', encoding='utf-8')
 code, st, _ = run_check()

@@ -101,3 +101,9 @@ history.jsonl 只在等级、区域/子区域、任务增删/进度/完成、装
 ## D17 — 2026-11-27 — 同时支持 Windows 和 macOS
 
 用户在 Mac 上也装了 WoW Forever（`/Applications/World of Warcraft/_forever_`，macOS 版 1.60.1.71139 zhCN，有 `World of Warcraft.app`，没有 `Wow.exe`），要求两个平台都支持。插件 Lua 与平台无关。脚本改为：路径一律用 `/` 拼接；`lib/common.ps1` 同时识别 `Wow.exe` 和 `World of Warcraft.app`，在 Mac 上查找 `/Applications` 和 `~/Applications`，找到 macOS 的 Claude Desktop 配置；AI 客户端启动命令在 Windows 用系统 `powershell.exe`，在 macOS 用当前 `pwsh` 的真实路径。新增 `.command` 双击启动文件。macOS 需要先安装 PowerShell 7。取代此前“采集只支持 Windows”的说法。
+
+## D18 — 2026-11-27 — macOS：受保护文件夹里的 checkout 改用 Application Support 存放运行文件
+
+macOS 实机测试中，Claude Desktop 启动的 `pwsh mcp-server.ps1` 报 “Access to the path '…/Documents/wow-context-bridge/mcp-server.ps1' is denied”，工具不出现。原因是 macOS 隐私保护（TCC）：Claude.app 启动的子进程不能读 `~/Documents`。用户在“文件与文件夹”里打开 Claude 的权限并重启后仍然被拒（原因未查明）。终端和 Claude Code 能读，是因为它们有自己的授权。
+
+做法：在 macOS 上，checkout 位于 `~/Documents`、`~/Desktop`、`~/Downloads` 或 iCloud 云盘（`~/Library/Mobile Documents`）时，`player.json`、`history.jsonl` 以及 `mcp-server.ps1` + `docs/ADVISOR.md` 的副本放在 `~/Library/Application Support/wow-context-bridge`。`install-mcp` 让客户端运行副本；`start` 每次启动刷新副本；`check-setup` 检查副本是否存在、是否与 checkout 一致。其他位置和 Windows 行为不变。环境变量 `WOW_CONTEXT_RUNTIME_DIR` 可以覆盖（测试用）。不依赖用户授予权限，也不要求用户移动 checkout。

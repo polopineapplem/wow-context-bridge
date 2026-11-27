@@ -116,3 +116,39 @@ function Find-CodexConfigPath {
   }
   return (Join-Path $h 'config.toml')
 }
+
+# macOS privacy (TCC): Claude Desktop and other apps start MCP servers that cannot read
+# ~/Documents, ~/Desktop, ~/Downloads or iCloud Drive unless the app has been granted access,
+# and even then access did not work in testing (2026-11-27, see docs/DECISIONS.md D18).
+# So when the checkout lives there, keep runtime files in ~/Library/Application Support instead.
+function Test-MacProtectedPath([string]$path,[string]$userHome=$env:HOME) {
+  if (!$path -or !$userHome) { return $false }
+  $p=[IO.Path]::GetFullPath($path).TrimEnd('/') + '/'
+  foreach ($rel in 'Documents','Desktop','Downloads','Library/Mobile Documents') {
+    $prefix=(Join-Path $userHome $rel).TrimEnd('/') + '/'
+    if ($p.StartsWith($prefix,[StringComparison]::OrdinalIgnoreCase)) { return $true }
+  }
+  return $false
+}
+
+# Folder for player.json, history.jsonl and the copy of mcp-server.ps1 that AI clients run.
+# WOW_CONTEXT_RUNTIME_DIR overrides it (used by tests).
+function Get-RuntimeDir([string]$checkout) {
+  if ($env:WOW_CONTEXT_RUNTIME_DIR) { return $env:WOW_CONTEXT_RUNTIME_DIR }
+  if ((Test-IsMac) -and (Test-MacProtectedPath $checkout)) { return (Join-Path $env:HOME 'Library/Application Support/wow-context-bridge') }
+  return $checkout
+}
+
+# Returns the mcp-server.ps1 path AI clients should run. Outside the checkout it is a copy,
+# refreshed here (with docs/ADVISOR.md for the what_next prompt) unless -NoCopy.
+function Sync-McpServer([string]$checkout,[switch]$NoCopy) {
+  $dir=Get-RuntimeDir $checkout
+  $src=[IO.Path]::GetFullPath((Join-Path $checkout 'mcp-server.ps1'))
+  $dst=[IO.Path]::GetFullPath((Join-Path $dir 'mcp-server.ps1'))
+  if ($dst -eq $src -or $NoCopy) { return $dst }
+  $docs=Join-Path $dir 'docs'
+  if (!(Test-Path -LiteralPath $docs)) { $null=New-Item -ItemType Directory -Path $docs -Force }
+  Copy-Item -LiteralPath $src -Destination $dst -Force
+  Copy-Item -LiteralPath (Join-Path $checkout 'docs/ADVISOR.md') -Destination (Join-Path $docs 'ADVISOR.md') -Force
+  return $dst
+}

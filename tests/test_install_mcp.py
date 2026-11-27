@@ -10,6 +10,8 @@ assert PWSH, 'PowerShell not found; set PWSH'
 tmp = pathlib.Path(tempfile.mkdtemp(prefix='lcb-install-'))
 claude = tmp / 'Claude' / 'claude_desktop_config.json'
 codex = tmp / '.codex' / 'config.toml'
+runtime = tmp / 'runtime'  # stands in for ~/Library/Application Support/wow-context-bridge (D18)
+os.environ['WOW_CONTEXT_RUNTIME_DIR'] = str(runtime)
 
 
 def run(*extra):
@@ -33,11 +35,15 @@ codex.write_text('model = "gpt-5"\n\n[mcp_servers.other]\ncommand = "y"\n', enco
 
 out = run('-DryRun')
 check('would write' in out and ': updated' not in out and 'wow-context' not in claude.read_text(), 'dry run changes nothing and says so')
+check(not runtime.exists(), 'dry run does not copy the server')
 
 run()
 cfg = json.loads(claude.read_text(encoding='utf-8'))
 srv = cfg['mcpServers']['wow-context']
 check(srv['args'][-1].endswith('mcp-server.ps1') and srv['args'][:4] == ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File'], 'Claude entry points at this checkout')
+copy = runtime / 'mcp-server.ps1'
+check(srv['args'][-1] == str(copy) and copy.read_bytes() == (ROOT / 'mcp-server.ps1').read_bytes(), 'runtime dir: clients run a fresh copy of the server (macOS protected folders, D18)')
+check((runtime / 'docs' / 'ADVISOR.md').read_bytes() == (ROOT / 'docs' / 'ADVISOR.md').read_bytes(), 'runtime copy includes ADVISOR.md for what_next')
 check(cfg['mcpServers']['other']['command'] == 'x' and cfg['globalShortcut'] == 'Ctrl+Space', 'other Claude settings preserved')
 check(isinstance(srv['args'], list) and isinstance(cfg['mcpServers']['other']['args'], list), 'arrays stay arrays (PowerShell 5.1 Count/value bug guarded)')
 toml = codex.read_text(encoding='utf-8')

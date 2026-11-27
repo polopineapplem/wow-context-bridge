@@ -49,6 +49,7 @@ Download the new version over the old folder (or `git pull`), double-click `star
 - The addon only uses the game's public addon API. It does not read memory, simulate keyboard or mouse input, send chat or use the network.
 - To get data out of the game, the addon **turns on the game's chat log** (`Logs\WoWChatLog.txt`). That log also records other chat, **including whispers**. This tool reads only its own data lines and never deletes the file.
 - The generated `player.json` and `history.jsonl` contain your character name and location. Don't upload or share them.
+- **Mac, folder in Documents, Desktop, Downloads or iCloud Drive:** macOS doesn't let AI apps read those folders. In that case `player.json`, `history.jsonl` and a copy of the MCP server go to `~/Library/Application Support/wow-context-bridge` instead. `start.command` and `install-mcp.command` handle this automatically.
 
 ## Troubleshooting
 
@@ -61,6 +62,7 @@ Run `check-setup.bat` first; it tells you which step is broken.
 | The AI says there is no character data | Make sure you restarted the game and logged in, `start.bat` is open, and wait about 20 seconds |
 | The AI says the data is minutes old | Normal during combat, loading screens or when logged out; otherwise check the "game log" step of `check-setup.bat` |
 | wow-context doesn't appear in the AI client | Run `install-mcp.bat` again, then **fully** quit and reopen the client |
+| Mac: Claude's log `~/Library/Logs/Claude/mcp-server-wow-context.log` says "Access to the path … is denied" | The folder is in Documents/Desktop/Downloads/iCloud. Update to the latest version, run `install-mcp.command`, restart `start.command`, then fully quit (Cmd+Q) and reopen Claude |
 | You moved the folder | Run `install-mcp.bat` again |
 
 ## Steps for AI agents

@@ -49,6 +49,7 @@ AI 助手请看“给 AI 助手的安装步骤”。
 - 插件只使用游戏的公开插件 API。不读内存、不模拟键盘鼠标、不发聊天、不联网。
 - 为了把数据传出游戏，插件会**开启游戏的聊天记录**（`Logs\WoWChatLog.txt`）。这份记录也会包含**私聊**等其他聊天内容。本工具只读取自己的数据行，不会删除这个文件。
 - 产生的 `player.json` 和 `history.jsonl` 包含角色名和位置，不要上传或分享。
+- **Mac 上文件夹放在“文稿”(Documents)、桌面、下载或 iCloud 云盘里时：** macOS 不让 AI 应用读取这些文件夹。此时 `player.json`、`history.jsonl` 和一份 MCP 服务器副本改放在 `~/Library/Application Support/wow-context-bridge`。`start.command` 和 `install-mcp.command` 会自动处理。
 
 ## 常见问题
 
@@ -61,6 +62,7 @@ AI 助手请看“给 AI 助手的安装步骤”。
 | AI 说没有角色数据 | 确认已重启游戏并登录了角色，`start.bat` 窗口开着，等约 20 秒 |
 | AI 说数据是几分钟前的 | 战斗中、读条或下线时不会更新，属于正常；否则看 `check-setup.bat` 的“game log”一项 |
 | AI 客户端里没有 wow-context | 重新运行 `install-mcp.bat`，然后**完全**退出并重开客户端 |
+| Mac：Claude 日志 `~/Library/Logs/Claude/mcp-server-wow-context.log` 里有 “Access to the path … is denied” | 文件夹在文稿/桌面/下载/iCloud 里。更新到最新版，运行 `install-mcp.command`，重新打开 `start.command`，然后完全退出（Cmd+Q）并重开 Claude |
 | 移动了文件夹 | 重新运行 `install-mcp.bat` |
 
 ## 给 AI 助手的安装步骤
