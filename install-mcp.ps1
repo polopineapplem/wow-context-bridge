@@ -52,7 +52,7 @@ function Update-Claude($path) {
     $servers | Add-Member $ServerName ([pscustomobject]@{command=$psExe;args=$serverArgs}) -Force
   }
   Write-Config $path ($cfg | ConvertTo-Json -Depth 50)
-  Write-Host "Claude Desktop: updated $path"
+  if ($DryRun) { Write-Host "Claude Desktop: would update $path" } else { Write-Host "Claude Desktop: updated $path" }
 }
 
 # ---------- Codex (also used by the ChatGPT desktop app's Codex settings) ----------
@@ -84,7 +84,7 @@ function Update-Codex($path) {
     $kept+=('args = [' + (($serverArgs | ForEach-Object { Toml-Str $_ }) -join ', ') + ']')
   }
   Write-Config $path ((($kept) -join "`n") + "`n")
-  Write-Host "Codex: updated $path"
+  if ($DryRun) { Write-Host "Codex: would update $path" } else { Write-Host "Codex: updated $path" }
 }
 
 function Find-CodexConfig {

@@ -32,7 +32,7 @@ codex.parent.mkdir(parents=True)
 codex.write_text('model = "gpt-5"\n\n[mcp_servers.other]\ncommand = "y"\n', encoding='utf-8')
 
 out = run('-DryRun')
-check('would write' in out and 'wow-context' not in claude.read_text(), 'dry run changes nothing')
+check('would write' in out and ': updated' not in out and 'wow-context' not in claude.read_text(), 'dry run changes nothing and says so')
 
 run()
 cfg = json.loads(claude.read_text(encoding='utf-8'))
