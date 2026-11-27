@@ -92,5 +92,15 @@ check([p['name'] for p in r[2]['result']['prompts']] == ['what_next'], 'prompts/
 text = r[3]['result']['messages'][0]['content']['text']
 check('get_player_context' in text and '游戏顾问' in text and 'prompt:start' not in text and text.endswith('Focus on: 升级'), 'what_next returns ADVISOR.md body in Chinese plus focus')
 check(r[4]['error']['code'] == -32602, 'unknown prompt is an error')
+# Forever-native quest details (addon 0.2.0, D19) pass through; old snapshots without them still work.
+rich = json.loads(json.dumps(live))
+rich['quests'][0].update(header='贫瘠之地', level=21, suggestedGroup=5, objectivesText='把皮革交给某人。', poi={'mapID': 1413, 'x': 40.0, 'y': 60.0})
+rich['api'] = {'GetQuestLogQuestText': True, 'C_QuestLog.GetNextWaypoint': False}
+player.write_text(json.dumps(rich, ensure_ascii=False), encoding='utf-8')
+r = run(player, [init, call(2, 'get_player_context')], history)
+q0, q1 = payload(r[2])['quests'][:2]
+check(q0['header'] == '贫瘠之地' and q0['level'] == 21 and q0['suggestedGroup'] == 5 and q0['objectivesText'] == '把皮革交给某人。' and q0['poi']['x'] == 40.0, 'context passes Forever quest details through')
+check('header' not in q1 and 'objectivesText' not in q1 and payload(r[2])['questApi']['GetQuestLogQuestText'] is True, 'missing details stay absent; API probe exposed')
+
 print('Fixture tests only; not a live game test.')
 shutil.rmtree(tmp)

@@ -107,3 +107,7 @@ history.jsonl 只在等级、区域/子区域、任务增删/进度/完成、装
 macOS 实机测试中，Claude Desktop 启动的 `pwsh mcp-server.ps1` 报 “Access to the path '…/Documents/wow-context-bridge/mcp-server.ps1' is denied”，工具不出现。原因是 macOS 隐私保护（TCC）：Claude.app 启动的子进程不能读 `~/Documents`。用户在“文件与文件夹”里打开 Claude 的权限并重启后仍然被拒（原因未查明）。终端和 Claude Code 能读，是因为它们有自己的授权。
 
 做法：在 macOS 上，checkout 位于 `~/Documents`、`~/Desktop`、`~/Downloads` 或 iCloud 云盘（`~/Library/Mobile Documents`）时，`player.json`、`history.jsonl` 以及 `mcp-server.ps1` + `docs/ADVISOR.md` 的副本放在 `~/Library/Application Support/wow-context-bridge`。`install-mcp` 让客户端运行副本；`start` 每次启动刷新副本；`check-setup` 检查副本是否存在、是否与 checkout 一致。其他位置和 Windows 行为不变。环境变量 `WOW_CONTEXT_RUNTIME_DIR` 可以覆盖（测试用）。不依赖用户授予权限，也不要求用户移动 checkout。
+
+## D19 — 2026-11-27 — 建议只用 Forever 客户端的数据
+
+用户指出：第一次实机“下一步做什么”时，AI 用经典版的记忆猜任务位置和等级，这不对；Forever 有自己的内容。做法：插件 0.2.0 从 Forever 客户端读取任务等级、建议人数、任务日志分类（区域）、任务目标说明文字、当前地图上的任务位置和路点，并记录这些接口是否存在（`api`）；MCP 原样转交；`docs/ADVISOR.md` 规定只能用这些字段，缺失时直说没有数据，不得用经典版/正式服记忆补充。任务说明文字按任务 ID 只读一次（控制日志体积）。读文字需要临时选中任务日志条目，读完恢复，不算操作游戏。更完整的 Forever 知识库（NPC 位置、掉落等）另立任务 T15，先调研现有插件/数据来源再决定。

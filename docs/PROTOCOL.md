@@ -43,7 +43,7 @@ Lua nil 字段不会被序列化，通常表现为缺失，而不是 JSON null�
 
 ## 任务、装备和位置
 
-任务对象：`id`、`name`、`complete`、`objectives[]`。目标字段为 `text`、`type`、`finished`、`numFulfilled`、`numRequired`，按 API 原值保存。不能假设所有目标都有数字进度；交付/事件目标需要结合文本与完成状态。
+任务对象：`id`、`name`、`complete`、`objectives[]`；插件 0.2.0 起（D19）在客户端支持时另有 `header`（任务日志分类，通常是区域名）、`level`、`suggestedGroup`（>0 才有）、`objectivesText`（游戏的任务目标说明，按任务 ID 缓存，最长 600 字节，按 UTF-8 边界截断）、`poi`（当前地图上的任务位置 `{mapID,x,y}`，百分比）、`waypoint`（下一个路点）。顶层 `api` 记录这些可选接口在本客户端是否存在。读取 `objectivesText` 会临时选中任务日志条目，随即恢复原选择。目标字段为 `text`、`type`、`finished`、`numFulfilled`、`numRequired`，按 API 原值保存。不能假设所有目标都有数字进度；交付/事件目标需要结合文本与完成状态。
 
 装备对象：`slot`（1–19）、可用时的 `id`/`name`、`empty`、`namePending`。优先从装备链接提取显示名，再尝试 C_Item.GetItemNameByID。不导出属性、附魔或完整物品链接。empty 只是当前 GetInventoryItemID 返回 nil，不应在 API 不可用场景下视作可靠“空槽”。
 

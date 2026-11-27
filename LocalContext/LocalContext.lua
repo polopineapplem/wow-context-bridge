@@ -18,6 +18,35 @@ local function json(v)
   for k,x in pairs(v) do parts[#parts+1]=quote(k)..':'..json(x) end
   return '{'..table.concat(parts,',')..'}'
 end
+-- Quest objective summary ("bring X to Y at Z") from the client, cached per quest ID because it
+-- never changes. Reading it selects the quest log entry; the previous selection is restored.
+local textCache={}
+local function questText(index,questID)
+  if textCache[questID]~=nil then return textCache[questID] or nil end
+  if not GetQuestLogQuestText then textCache[questID]=false; return nil end
+  local ok,_,objText=pcall(function()
+    if SelectQuestLogEntry and GetQuestLogSelection then
+      local prev=GetQuestLogSelection()
+      SelectQuestLogEntry(index)
+      local d,o=GetQuestLogQuestText()
+      SelectQuestLogEntry(prev or 0)
+      return d,o
+    elseif C_QuestLog.GetSelectedQuest and C_QuestLog.SetSelectedQuest then
+      local prev=C_QuestLog.GetSelectedQuest()
+      C_QuestLog.SetSelectedQuest(questID)
+      local d,o=GetQuestLogQuestText(index)
+      C_QuestLog.SetSelectedQuest(prev or 0)
+      return d,o
+    end
+  end)
+  if ok and type(objText)=='string' and objText~='' then
+    -- Cut long text on a UTF-8 character boundary; the reader rejects invalid UTF-8.
+    if #objText>600 then objText=objText:sub(1,600):gsub('[\192-\255][\128-\191]*$','') end
+    textCache[questID]=objText
+    return objText
+  end
+  return nil  -- text may not be loaded yet; try again next snapshot
+end
 local function snapshot()
   local name,surname=UnitName('player')
   if surname and surname~='' then name=name..' '..surname end
@@ -33,17 +62,37 @@ local function snapshot()
     s.capabilities[key]=ok
     if not ok then s.errors[#s.errors+1]={section=key,message=tostring(err)} end
   end
+  -- Which optional quest APIs this Forever client has (D19). Recorded so advice never assumes them.
+  local api={}
+  for _,n in ipairs({'GetQuestsOnMap','GetNextWaypoint','GetSelectedQuest','SetSelectedQuest'}) do api['C_QuestLog.'..n]=C_QuestLog[n]~=nil end
+  for _,n in ipairs({'GetQuestLogQuestText','SelectQuestLogEntry','GetQuestLogSelection'}) do api[n]=_G[n]~=nil end
+  s.api=api
   read('quests',function()
-    local collapsed=false
+    local collapsed,header=false,nil
+    local onMap={}
+    local map=C_Map.GetBestMapForUnit('player')
+    if map and C_QuestLog.GetQuestsOnMap then
+      local ok,list=pcall(C_QuestLog.GetQuestsOnMap,map)
+      if ok and type(list)=='table' then
+        for _,m in ipairs(list) do if m.questID then onMap[m.questID]={mapID=map,x=m.x and m.x*100,y=m.y and m.y*100} end end
+      end
+    end
     for i=1,C_QuestLog.GetNumQuestLogEntries() do
       local q=C_QuestLog.GetInfo(i)
-      if q and q.isHeader and q.isCollapsed then collapsed=true end
+      if q and q.isHeader then header=q.title; if q.isCollapsed then collapsed=true end end
       if q and not q.isHeader and not q.isHidden and q.questID>0 then
         local objectives={_array=true}
         for _,o in ipairs(C_QuestLog.GetQuestObjectives(q.questID) or {}) do
           objectives[#objectives+1]={text=o.text,type=o.type,finished=o.finished,numFulfilled=o.numFulfilled,numRequired=o.numRequired}
         end
-        s.quests[#s.quests+1]={id=q.questID,name=q.title,complete=C_QuestLog.IsComplete(q.questID),objectives=objectives}
+        local e={id=q.questID,name=q.title,complete=C_QuestLog.IsComplete(q.questID),objectives=objectives,
+          header=header,level=q.level,suggestedGroup=(q.suggestedGroup and q.suggestedGroup>0) and q.suggestedGroup or nil,
+          objectivesText=questText(i,q.questID),poi=onMap[q.questID]}
+        if C_QuestLog.GetNextWaypoint then
+          local ok,wm,wx,wy=pcall(C_QuestLog.GetNextWaypoint,q.questID)
+          if ok and wm and wx then e.waypoint={mapID=wm,x=wx*100,y=wy*100} end
+        end
+        s.quests[#s.quests+1]=e
       end
     end
     s.questLogMayBeIncomplete=collapsed

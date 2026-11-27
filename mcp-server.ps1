@@ -84,7 +84,12 @@ function Read-History([int]$limit) {
 function Quest-Brief($q) {
   $progress=@()
   foreach ($o in @($q.objectives)) { if ($o) { $progress+=$o.text } }
-  [pscustomobject]@{id=$q.id;name=$q.name;complete=$q.complete;objectives=$progress}
+  $b=[ordered]@{id=$q.id;name=$q.name;complete=$q.complete;objectives=$progress}
+  # Forever-native details from the client (addon 0.2.0+, D19); absent when the client lacks the API.
+  foreach ($k in 'header','level','suggestedGroup','objectivesText','poi','waypoint') {
+    if ($q.PSObject.Properties[$k] -and $null -ne $q.$k) { $b[$k]=$q.$k }
+  }
+  [pscustomobject]$b
 }
 
 function Equipment-List($p) {
@@ -114,7 +119,7 @@ function Tool-Context($a) {
     character=$p.character; client=$p.client; location=$p.location
     quests=$quests; questCount=$quests.Count; questLogMayBeIncomplete=$p.questLogMayBeIncomplete
     completedQuestCount=$completedCount; equipment=$equipped
-    recentChanges=(Read-History 5); capabilities=$p.capabilities; errors=@($p.errors)
+    recentChanges=(Read-History 5); capabilities=$p.capabilities; questApi=$p.api; errors=@($p.errors)
   }
 }
 
