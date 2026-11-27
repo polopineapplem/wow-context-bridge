@@ -27,7 +27,7 @@ MVP 目标（2026-11-27 用户确认）：任意 AI（ChatGPT 优先，Claude/Co
 | T11 | 一键配置 MCP（install-mcp.bat） | done（模拟） | 自动写入 Claude Desktop（含 Microsoft Store 版路径）和 ~/.codex/config.toml；保留其他设置、备份、可重复、可卸载；实机未测 |
 | T12 | 游戏顾问提示 what_next | done（模拟） | docs/ADVISOR.md 为唯一规则来源；MCP prompts/list、prompts/get；实机效果未测 |
 | T15 | Forever 知识库 | todo | 先调研现有数据来源（如 Questie 是否有 Forever 数据、Forever 攻略站）；补充客户端拿不到的信息：怪物是否精英、掉落与掉率、NPC 位置；来源可追溯，不用经典版数据冒充 Forever |
-| T16 | 云端远程 MCP（D20） | todo | 本机读取器把快照推到一个免费的托管服务；ChatGPT 自定义连接器（远程 MCP，HTTPS + 访问令牌）调用 get_player_context；推送策略：有变化时推（最快每 15–30 秒一次）+ 无变化时每 2–5 分钟心跳，远程 stale 阈值随心跳间隔调整；令牌不进仓库；可关闭上传；先确认 ChatGPT 连接器要求和免费额度 |
+| T16 | 云端远程 MCP（D20） | todo | 本机读取器把快照推到一个免费的托管服务；ChatGPT 自定义连接器（远程 MCP，HTTPS + 访问令牌）调用 get_player_context；推送策略（建议值）：等级/区域/子区域/任务/装备变化或坐标移动超过 3（地图百分比）时推送，最快每 30 秒一次；无变化时每 3 分钟心跳；远程 stale 阈值 4 分钟；令牌不进仓库；可关闭上传；先确认 ChatGPT 连接器要求和免费额度 |
 | T9 | 日志量与恢复 | todo | 量化填充开销、落盘延迟、磁盘增长；I/O 异常恢复；同尺寸日志替换识别；不自动删除聊天日志 |
 
 ## 已完成
