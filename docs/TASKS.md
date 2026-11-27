@@ -1,6 +1,6 @@
 # 任务看板
 
-最后更新：2026-11-27（macOS 实机会话）。取代原 `ROADMAP.md`。状态：`todo` / `doing` / `done` / `blocked`。每次会话结束按 AGENTS.md 的规则更新本文件。
+最后更新：2026-11-27（T16 调研会话）。取代原 `ROADMAP.md`。状态：`todo` / `doing` / `done` / `blocked`。每次会话结束按 AGENTS.md 的规则更新本文件。
 
 MVP 目标（2026-11-27 用户确认）：任意 AI（ChatGPT 优先，Claude/Codex 也可）能读取**最新**的角色信息，并回答“这个角色下一步做什么”。轻量、本地存储优先，之后再扩展。
 
@@ -27,7 +27,7 @@ MVP 目标（2026-11-27 用户确认）：任意 AI（ChatGPT 优先，Claude/Co
 | T11 | 一键配置 MCP（install-mcp.bat） | done（模拟） | 自动写入 Claude Desktop（含 Microsoft Store 版路径）和 ~/.codex/config.toml；保留其他设置、备份、可重复、可卸载；实机未测 |
 | T12 | 游戏顾问提示 what_next | done（模拟） | docs/ADVISOR.md 为唯一规则来源；MCP prompts/list、prompts/get；实机效果未测 |
 | T15 | Forever 知识库 | todo | 先调研现有数据来源（如 Questie 是否有 Forever 数据、Forever 攻略站）；补充客户端拿不到的信息：怪物是否精英、掉落与掉率、NPC 位置；来源可追溯，不用经典版数据冒充 Forever |
-| T16 | 云端远程 MCP（D20） | todo | 本机读取器把快照推到一个免费的托管服务；ChatGPT 自定义连接器（远程 MCP，HTTPS + 访问令牌）调用 get_player_context；推送策略（建议值）：等级/区域/子区域/任务/装备变化或坐标移动超过 3（地图百分比）时推送，最快每 30 秒一次；无变化时每 3 分钟心跳；远程 stale 阈值 4 分钟；令牌不进仓库；可关闭上传；先确认 ChatGPT 连接器要求和免费额度 |
+| T16 | 云端远程 MCP（D20） | blocked（D21：官方文档显示 Plus 不能加自定义 MCP；调研见 docs/REMOTE_MCP.md，等用户选择 ChatGPT 账户确认 / 先做 claude.ai / 暂停） | 本机读取器把快照推到一个免费的托管服务；ChatGPT 自定义连接器（远程 MCP，HTTPS + 访问令牌）调用 get_player_context；推送策略（建议值）：等级/区域/子区域/任务/装备变化或坐标移动超过 3（地图百分比）时推送，最快每 30 秒一次；无变化时每 3 分钟心跳；远程 stale 阈值 4 分钟；令牌不进仓库；可关闭上传；先确认 ChatGPT 连接器要求和免费额度 |
 | T17 | Forever 任务细节（插件 0.2.0） | done（实机） | 等级、分类、目标说明、地图位置从客户端读取，api 探测结果见 VALIDATION（D19） |
 | T9 | 日志量与恢复 | todo | 量化填充开销、落盘延迟、磁盘增长；I/O 异常恢复；同尺寸日志替换识别；不自动删除聊天日志 |
 

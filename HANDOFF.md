@@ -2,16 +2,13 @@
 
 ## 当前状态（每次会话结束时重写本节）
 
-更新：2026-11-27（第三次会话，Mac，**真实游戏**）。
+更新：2026-11-27（第四次会话，Mac，T16 调研；**只做了文档调研，没有代码改动，没有实机或模拟测试**）。
 
-- **macOS 第一次实机运行通过**（详见 `docs/VALIDATION.md`“2026-11-27 macOS 实机测试”）：check-setup 全 PASS；真实 Claude Desktop 通过 MCP 读到 live 数据；退出游戏 65 秒后 stale=true；读到时数据一般 2–13 秒前。
-- **修复（D18）**：macOS 不允许 Claude 启动的 MCP 读 `~/Documents`（开权限也不行）。checkout 在文稿/桌面/下载/iCloud 时，`player.json`、`history.jsonl` 和 MCP 服务器副本放 `~/Library/Application Support/wow-context-bridge`；install-mcp 指向副本，start 刷新副本，check-setup 检查副本。有回归测试。
-- **插件 0.2.0（D19）**：从 Forever 客户端读取任务等级、日志分类、目标说明、地图位置，ADVISOR 禁止用经典版记忆。已在游戏 /reload 后实机确认（api 探测结果在 VALIDATION）。
-- 本机：读取器由 `start.command` 在终端窗口运行；Claude/Codex 配置指向 Application Support 里的副本（有 .bak）。
-- 测试（PowerShell 7.7.0，`PWSH=~/.local/bin/pwsh`）：test-reader、test_mcp、test_install_mcp、test_check_setup 全过；test_addon 用 lupa 2.8（临时 venv）通过。
-- **未做/未验证**：ChatGPT 桌面应用的 Codex（T4）；游玩中的任务/区域/装备变化（T7，本轮角色没动）；Claude Chat 里用户提问的回答未记录；Windows 上 5.1 实测（T10）。
-- **新任务**：T15 Forever 知识库（精英、掉落、NPC 位置）；T16 云端远程 MCP（D20，用户已选方案 B 与推送参数）。
-- **下一步**：做 T16（单独会话）；本地方面在 ChatGPT 桌面应用的 Codex 里问“这个角色下一步做什么？”并在正常游玩时观察 T7 变化。
+- **T16 暂停（D21）**：OpenAI 官方帮助页写明自定义远程 MCP 面向 Business/Enterprise/Edu，Pro 仅读取，Plus 未列出；认证只有 OAuth 或无认证，没有静态 Bearer 令牌；自定义 GPT Actions 2026-12-11 退役。按任务要求在搭建前停止。调研和来源见 `docs/REMOTE_MCP.md`。
+- 同一个远程 MCP 可以给 claude.ai 网页/手机使用（Claude Pro 支持远程自定义连接器，可在请求头填 Bearer 令牌）。
+- 托管选型：Cloudflare Worker + SQLite Durable Object。D20 推送参数下最坏 2,880 次/天，远低于 DO 免费 10 万请求、10 万行写入；KV 每天 1000 次写入不够。
+- 上一会话（macOS 实机）的状态不变：Claude Desktop 本地 MCP 已实机通过（D18、D19），T4/T7/T10 仍待做。
+- **下一步**：用户三选一——(a) 在 ChatGPT 网页 Plugins → “+” 看是否有“Add custom MCP server”，有就实施 T16（ChatGPT 侧需 OAuth 或无认证地址）；(b) 先给 claude.ai 实施（设计见 REMOTE_MCP.md“如果继续”）；(c) 暂停 T16。本地方面仍是在 ChatGPT 桌面应用的 Codex 里实测（T4）和观察 T7。
 
 ---
 

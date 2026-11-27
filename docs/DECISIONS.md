@@ -115,3 +115,9 @@ macOS 实机测试中，Claude Desktop 启动的 `pwsh mcp-server.ps1` 报 “Ac
 ## D20 — 2026-11-27 — 用户选择：普通 ChatGPT 聊天通过云端远程 MCP 读取（待实施，T16）
 
 普通 ChatGPT 聊天在 OpenAI 服务器上运行，读不到本机文件。用户比较了 Google Drive、S3 公开链接和自建远程 MCP 后，选择自建远程 MCP：本机读取器推送快照到托管服务，ChatGPT 通过自定义连接器调用。这改变了 D4/D12 和 AGENTS.md 中“只在本地、不自动上传”的边界，但仅限 T16 的实现：上传必须可关闭、需要访问令牌、令牌和地址不进公开仓库。实施前先确认 ChatGPT 连接器的实际要求和免费额度。本地 MCP 路径保持不变。
+
+## D21 — 2026-11-27 — T16 暂停：ChatGPT Plus 不能添加自定义远程 MCP
+
+按 T16 要求先调研（`docs/REMOTE_MCP.md`）。OpenAI 官方帮助页：自定义 MCP 服务器面向 Business、Enterprise/Edu；Pro 只有读取/获取权限；Free/Go/Plus 未列出。认证只支持 OAuth 或无认证，没有静态 Bearer 令牌。自定义 GPT Actions 将于 2026-12-11 退役，不作替代。因此按任务说明，在搭建前停止并报告，没有写 Worker 和上传器代码。D20 的选择不撤销，只是阻塞。
+
+待用户决定：(a) 在自己的 ChatGPT 账户确认 Plugins → “+” 是否有 “Add custom MCP server”，有则继续（ChatGPT 需要 OAuth 或无认证地址）；(b) 改为先给 claude.ai 网页/手机用（Claude Pro 支持远程自定义连接器，可用请求头 Bearer 令牌），托管方案不变；(c) 暂不做。托管选 Cloudflare Worker + SQLite Durable Object（KV 每天 1000 次写入不够）。
