@@ -1,0 +1,5 @@
+## Interface: 16001
+## Title: LocalContext
+## Version: 0.1.0
+## Notes: Local read-only context. Enables chat logging (including whispers). No network or UI.
+LocalContext.lua

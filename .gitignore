@@ -1,0 +1,11 @@
+/player.json
+/player.json.tmp
+/history.jsonl
+/history.jsonl.tmp
+*.log
+*.pid
+__pycache__/
+.venv/
+work/
+config.local.json
+*.zip

@@ -1,0 +1,753 @@
+{
+  "capabilities": {
+    "completedQuests": true,
+    "equipment": true,
+    "quests": true,
+    "location": true
+  },
+  "sequence": 182,
+  "errors": [],
+  "completedQuestIDs": [
+    8,
+    264,
+    354,
+    355,
+    356,
+    357,
+    358,
+    359,
+    360,
+    361,
+    362,
+    363,
+    364,
+    365,
+    366,
+    367,
+    368,
+    369,
+    370,
+    371,
+    372,
+    374,
+    375,
+    376,
+    380,
+    381,
+    382,
+    383,
+    398,
+    404,
+    405,
+    407,
+    409,
+    411,
+    421,
+    422,
+    426,
+    427,
+    428,
+    429,
+    430,
+    435,
+    437,
+    438,
+    439,
+    440,
+    445,
+    447,
+    449,
+    477,
+    478,
+    479,
+    481,
+    482,
+    492,
+    832,
+    844,
+    845,
+    848,
+    850,
+    851,
+    852,
+    853,
+    855,
+    865,
+    866,
+    867,
+    868,
+    869,
+    870,
+    871,
+    872,
+    874,
+    877,
+    878,
+    880,
+    881,
+    882,
+    887,
+    888,
+    890,
+    891,
+    892,
+    894,
+    895,
+    899,
+    900,
+    901,
+    902,
+    903,
+    905,
+    907,
+    913,
+    914,
+    959,
+    962,
+    1061,
+    1062,
+    1063,
+    1069,
+    1093,
+    1094,
+    1130,
+    1358,
+    1359,
+    1483,
+    1487,
+    1489,
+    1490,
+    1491,
+    1492,
+    1881,
+    1882,
+    1884,
+    1959,
+    1960,
+    1961,
+    1962,
+    3098,
+    3221,
+    3261,
+    3301,
+    3901,
+    3902,
+    4021,
+    4921,
+    5041,
+    5052,
+    5481,
+    5482,
+    5722,
+    5723,
+    5724,
+    5725,
+    5726,
+    5727,
+    5728,
+    5729,
+    5730,
+    5761,
+    6321,
+    6322,
+    6323,
+    6324,
+    6395,
+    6401,
+    6523,
+    6548,
+    6629,
+    79007,
+    79192,
+    79980,
+    86784,
+    95774,
+    95981,
+    95998,
+    96047,
+    96055,
+    96057,
+    96101,
+    96102,
+    96604,
+    96605,
+    96606,
+    96607,
+    96608,
+    96626,
+    96627,
+    96628,
+    96629,
+    96630,
+    96634,
+    96638,
+    96646,
+    96652,
+    96655,
+    96656,
+    96658,
+    96659,
+    96661,
+    96895,
+    96897,
+    96898,
+    97242,
+    97253,
+    97275,
+    97558,
+    97903,
+    97905,
+    97919,
+    97921,
+    97925,
+    97931,
+    97933,
+    97937,
+    97942,
+    97944,
+    97950,
+    97955,
+    97957,
+    97961,
+    97965,
+    97968,
+    97972,
+    97973,
+    98247,
+    98248,
+    98289,
+    98389,
+    99134,
+    99141,
+    99142,
+    99156,
+    99582
+  ],
+  "schemaVersion": 1,
+  "equipment": [
+    {
+      "namePending": false,
+      "slot": 1,
+      "empty": true
+    },
+    {
+      "namePending": false,
+      "name": "守路者的信心",
+      "slot": 2,
+      "id": 281265,
+      "empty": false
+    },
+    {
+      "namePending": false,
+      "slot": 3,
+      "empty": true
+    },
+    {
+      "namePending": false,
+      "name": "棕色亚麻衬衣",
+      "slot": 4,
+      "id": 4344,
+      "empty": false
+    },
+    {
+      "namePending": false,
+      "name": "魔焰长袍",
+      "slot": 5,
+      "id": 7510,
+      "empty": false
+    },
+    {
+      "namePending": false,
+      "name": "草地腰带",
+      "slot": 6,
+      "id": 6477,
+      "empty": false
+    },
+    {
+      "namePending": false,
+      "name": "夜枭之礼节护腿",
+      "slot": 7,
+      "id": 14125,
+      "empty": false
+    },
+    {
+      "namePending": false,
+      "name": "智力之土著薄靴",
+      "slot": 8,
+      "id": 14114,
+      "empty": false
+    },
+    {
+      "namePending": false,
+      "name": "羽珠护腕",
+      "slot": 9,
+      "id": 15452,
+      "empty": false
+    },
+    {
+      "namePending": false,
+      "name": "药剂师手套",
+      "slot": 10,
+      "id": 10919,
+      "empty": false
+    },
+    {
+      "namePending": false,
+      "name": "赏金猎人之戒",
+      "slot": 11,
+      "id": 5351,
+      "empty": false
+    },
+    {
+      "namePending": false,
+      "slot": 12,
+      "empty": true
+    },
+    {
+      "namePending": false,
+      "slot": 13,
+      "empty": true
+    },
+    {
+      "namePending": false,
+      "slot": 14,
+      "empty": true
+    },
+    {
+      "namePending": false,
+      "name": "猎鹰之海盗斗篷",
+      "slot": 15,
+      "id": 14167,
+      "empty": false
+    },
+    {
+      "namePending": false,
+      "name": "新月法杖",
+      "slot": 16,
+      "id": 6505,
+      "empty": false
+    },
+    {
+      "namePending": false,
+      "slot": 17,
+      "empty": true
+    },
+    {
+      "namePending": false,
+      "name": "强效魔法杖",
+      "slot": 18,
+      "id": 11288,
+      "empty": false
+    },
+    {
+      "namePending": false,
+      "slot": 19,
+      "empty": true
+    }
+  ],
+  "character": {
+    "level": 22,
+    "classToken": "MAGE",
+    "name": "示例 角色",
+    "raceID": 5,
+    "race": "亡灵",
+    "class": "法师",
+    "classID": 8,
+    "realm": ""
+  },
+  "quests": [
+    {
+      "id": 6284,
+      "objectives": [
+        {
+          "type": "item",
+          "numRequired": 1,
+          "text": "0/1 贝瑟莱斯的牙齿",
+          "finished": false,
+          "numFulfilled": 0
+        }
+      ],
+      "name": "贝瑟莱斯",
+      "complete": false
+    },
+    {
+      "id": 1068,
+      "objectives": [
+        {
+          "type": "monster",
+          "numRequired": 1,
+          "text": "0/1 消灭XT:4",
+          "finished": false,
+          "numFulfilled": 0
+        },
+        {
+          "type": "monster",
+          "numRequired": 1,
+          "text": "0/1 消灭XT:9",
+          "finished": false,
+          "numFulfilled": 0
+        }
+      ],
+      "name": "伐木机",
+      "complete": false
+    },
+    {
+      "id": 97538,
+      "objectives": [
+        {
+          "type": "item",
+          "numRequired": 30,
+          "text": "0/30 幽暗草荚",
+          "finished": false,
+          "numFulfilled": 0
+        }
+      ],
+      "name": "绘画颜料",
+      "complete": false
+    },
+    {
+      "id": 1095,
+      "objectives": [],
+      "name": "新的指示",
+      "complete": true
+    },
+    {
+      "id": 79974,
+      "objectives": [],
+      "name": "肮脏活计",
+      "complete": true
+    },
+    {
+      "id": 6541,
+      "objectives": [],
+      "name": "向卡德拉克报到",
+      "complete": true
+    },
+    {
+      "id": 92706,
+      "objectives": [
+        {
+          "type": "item",
+          "numRequired": 1,
+          "text": "0/1 布鲁兹的背鳍",
+          "finished": false,
+          "numFulfilled": 0
+        }
+      ],
+      "name": "通缉：布鲁兹",
+      "complete": false
+    },
+    {
+      "id": 97003,
+      "objectives": [
+        {
+          "type": "item",
+          "numRequired": 1,
+          "text": "0/1 乔拉鲁克的头颅",
+          "finished": false,
+          "numFulfilled": 0
+        }
+      ],
+      "name": "噬灭者乔拉鲁克",
+      "complete": false
+    },
+    {
+      "id": 97250,
+      "objectives": [
+        {
+          "type": "monster",
+          "numRequired": 2,
+          "text": "0/2 消灭入侵的士兵",
+          "finished": false,
+          "numFulfilled": 0
+        },
+        {
+          "type": "monster",
+          "numRequired": 1,
+          "text": "0/1 消灭愤怒的掠夺者",
+          "finished": false,
+          "numFulfilled": 0
+        }
+      ],
+      "name": "错怪无辜，罪有应得",
+      "complete": false
+    },
+    {
+      "id": 893,
+      "objectives": [
+        {
+          "type": "item",
+          "numRequired": 1,
+          "text": "0/1 钢鬃背刺匕首",
+          "finished": false,
+          "numFulfilled": 0
+        },
+        {
+          "type": "item",
+          "numRequired": 1,
+          "text": "0/1 烧焦的钢鬃魔杖",
+          "finished": false,
+          "numFulfilled": 0
+        },
+        {
+          "type": "item",
+          "numRequired": 1,
+          "text": "0/1 钢鬃大盾",
+          "finished": false,
+          "numFulfilled": 0
+        }
+      ],
+      "name": "野猪人的武器",
+      "complete": false
+    },
+    {
+      "id": 879,
+      "objectives": [
+        {
+          "type": "item",
+          "numRequired": 1,
+          "text": "0/1 卡兹的颅骨",
+          "finished": false,
+          "numFulfilled": 0
+        },
+        {
+          "type": "item",
+          "numRequired": 1,
+          "text": "0/1 纳克的颅骨",
+          "finished": false,
+          "numFulfilled": 0
+        },
+        {
+          "type": "item",
+          "numRequired": 1,
+          "text": "0/1 洛克·奥克班恩的颅骨",
+          "finished": false,
+          "numFulfilled": 0
+        }
+      ],
+      "name": "内奸",
+      "complete": false
+    },
+    {
+      "id": 873,
+      "objectives": [
+        {
+          "type": "item",
+          "numRequired": 1,
+          "text": "0/1 依沙瓦克的心脏",
+          "finished": false,
+          "numFulfilled": 0
+        }
+      ],
+      "name": "依沙瓦克",
+      "complete": false
+    },
+    {
+      "id": 742,
+      "objectives": [],
+      "name": "灰谷狩猎",
+      "complete": true
+    },
+    {
+      "id": 1195,
+      "objectives": [
+        {
+          "type": "item",
+          "numRequired": 1,
+          "text": "0/1 装满水的蚀刻瓶",
+          "finished": false,
+          "numFulfilled": 0
+        }
+      ],
+      "name": "神圣之火",
+      "complete": false
+    },
+    {
+      "id": 1131,
+      "objectives": [
+        {
+          "type": "item",
+          "numRequired": 1,
+          "text": "0/1 钢齿土狼的肋骨",
+          "finished": false,
+          "numFulfilled": 0
+        }
+      ],
+      "name": "钢齿土狼",
+      "complete": false
+    },
+    {
+      "id": 1221,
+      "objectives": [
+        {
+          "type": "item",
+          "numRequired": 6,
+          "text": "0/6 蓝叶薯",
+          "finished": false,
+          "numFulfilled": 0
+        },
+        {
+          "type": "item",
+          "numRequired": 1,
+          "text": "0/1 开孔的箱子",
+          "finished": false,
+          "numFulfilled": 0
+        },
+        {
+          "type": "item",
+          "numRequired": 1,
+          "text": "0/1 地鼠训练手册",
+          "finished": false,
+          "numFulfilled": 0
+        },
+        {
+          "type": "item",
+          "numRequired": 1,
+          "text": "0/1 地鼠指挥棒",
+          "finished": false,
+          "numFulfilled": 0
+        }
+      ],
+      "name": "蓝叶薯",
+      "complete": false
+    },
+    {
+      "id": 1486,
+      "objectives": [
+        {
+          "type": "item",
+          "numRequired": 20,
+          "text": "9/20 变异皮革",
+          "finished": false,
+          "numFulfilled": 9
+        }
+      ],
+      "name": "变异皮革",
+      "complete": false
+    },
+    {
+      "id": 6981,
+      "objectives": [
+        {
+          "type": "event",
+          "numRequired": 1,
+          "text": "找人谈谈噩梦碎片的事情",
+          "finished": false,
+          "numFulfilled": 0
+        }
+      ],
+      "name": "发光的碎片",
+      "complete": false
+    },
+    {
+      "id": 1013,
+      "objectives": [
+        {
+          "type": "item",
+          "numRequired": 1,
+          "text": "0/1 乌尔之书",
+          "finished": false,
+          "numFulfilled": 0
+        }
+      ],
+      "name": "乌尔之书",
+      "complete": false
+    },
+    {
+      "id": 8426,
+      "objectives": [
+        {
+          "type": "item",
+          "numRequired": 3,
+          "text": "0/3 战歌峡谷荣誉奖章",
+          "finished": false,
+          "numFulfilled": 0
+        }
+      ],
+      "name": "峡谷中的战斗",
+      "complete": false
+    },
+    {
+      "id": 92421,
+      "objectives": [
+        {
+          "type": "item",
+          "numRequired": 25,
+          "text": "0/25 完好的肢体",
+          "finished": false,
+          "numFulfilled": 0
+        }
+      ],
+      "name": "圣光的正义",
+      "complete": false
+    },
+    {
+      "id": 493,
+      "objectives": [
+        {
+          "type": "log",
+          "numRequired": 1,
+          "text": "将伦弗利尔的研究成果交给希尔斯布莱德山脚下塔伦米尔的药剂师林度恩。",
+          "finished": true,
+          "numFulfilled": 1
+        }
+      ],
+      "name": "前往希尔斯布莱德丘陵",
+      "complete": true
+    },
+    {
+      "id": 480,
+      "objectives": [
+        {
+          "type": "item",
+          "numRequired": 1,
+          "text": "0/1 阿塔瑞克之杖",
+          "finished": false,
+          "numFulfilled": 0
+        }
+      ],
+      "name": "法师的头领",
+      "complete": false
+    },
+    {
+      "id": 8370,
+      "objectives": [
+        {
+          "type": "item",
+          "numRequired": 3,
+          "text": "0/3 阿拉希盆地荣誉奖章",
+          "finished": false,
+          "numFulfilled": 0
+        }
+      ],
+      "name": "征服阿拉希盆地",
+      "complete": false
+    }
+  ],
+  "questLogMayBeIncomplete": true,
+  "location": {
+    "coordinateUnit": "percent",
+    "mapID": 1413,
+    "y": 29.826956987381,
+    "zone": "贫瘠之地",
+    "subzone": "十字路口",
+    "x": 51.944142580032,
+    "mapName": "贫瘠之地",
+    "coordinatesAvailable": true
+  },
+  "client": {
+    "locale": "zhCN",
+    "interface": 16001,
+    "version": "1.60.1",
+    "build": "71139"
+  },
+  "capturedAt": 1700000000,
+  "session": "1700000000-123456",
+  "freshness": {
+    "checkedAt": "2023-11-14T22:13:20+00:00",
+    "ageSeconds": 0,
+    "stale": false,
+    "source": "WoWChatLog"
+  },
+  "status": "snapshot_received"
+}

@@ -1,0 +1,100 @@
+# WoW Forever Context Bridge
+
+[English](README.md) | **中文**
+
+让你电脑上的 AI 看到你的 WoW Forever 角色，然后直接问它：**“这个角色下一步做什么？”**
+
+游戏内的小插件和本地读取器会持续更新角色快照：等级、区域、坐标、任务进度和装备。桌面 AI 客户端（Claude Desktop、ChatGPT 桌面客户端、Codex）通过本地只读的 [MCP](https://modelcontextprotocol.io) 服务器读取这些数据。全部在你自己的电脑上运行：不上云、不用注册账号、不联网。
+
+```
+WoW Forever ─▶ LocalContext 插件 ─▶ 游戏聊天日志 ─▶ start.bat 读取器 ─▶ player.json + history.jsonl
+                                                                                   │
+                                     Claude Desktop / ChatGPT 桌面客户端 / Codex ◀─ mcp-server.ps1（本地、只读）
+```
+
+## 安装
+
+**完整步骤见 [INSTALL.zh-CN.md](INSTALL.zh-CN.md)**，自己安装、朋友安装、请 AI 助手帮忙安装都适用。简要流程：
+
+1. 下载本仓库，放到固定位置。
+2. 双击 `start.bat`：自动找到游戏、安装插件、开始读取。窗口保持开着。
+3. 完全重启游戏并登录角色。
+4. 双击 `install-mcp.bat`，然后完全重开 AI 客户端。
+5. 双击 `check-setup.bat`，逐项检查。
+6. 问 AI：“这个角色下一步做什么？”
+
+需要：Windows 和 WoW Forever 客户端。已验证版本：1.60.1.71139、Interface 16001、zhCN。除了系统自带的 Windows PowerShell，不需要安装任何东西。
+
+## AI 能看到什么
+
+- 角色：姓名、职业、种族、等级。
+- 当前任务：ID、名称、目标文本、数量（如 9/20）、是否完成。
+- 已完成任务 ID（游戏 API 提供时）。
+- 地图、区域、子区域、坐标（地图百分比）。
+- 装备槽 1–19 的物品 ID 和名称。
+- 最近变化：升级、换区域、任务进度、换装备。
+- 新鲜度：快照是多久以前的、读取器是否还在运行。
+
+MCP 工具：`get_player_context`、`get_quests`、`get_equipment`、`get_recent_changes`；另有 `what_next` 提示，遵循 [docs/ADVISOR.md](docs/ADVISOR.md) 的顾问规则。
+
+## 支持的 AI 客户端
+
+| 客户端 | 方式 |
+| --- | --- |
+| Claude Desktop | `install-mcp.bat` 自动配置（包括 Microsoft Store 版） |
+| Codex / ChatGPT 桌面客户端 | `install-mcp.bat` 写入 `~/.codex/config.toml`；据第三方资料，ChatGPT 桌面客户端的 Codex 设置使用同一份文件（我们尚未实测） |
+| Claude Code | `claude mcp add wow-context -- powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\path\to\wow-context-bridge\mcp-server.ps1` |
+| 网页版、手机版 | 不支持：它们读不到你电脑上的文件 |
+
+AI 客户端必须和游戏在同一台 Windows 电脑上。`start.bat` 要保持运行；MCP 服务器只读文件，本身不采集数据。
+
+<details>
+<summary>手动配置</summary>
+
+把路径换成本文件夹的实际位置。
+
+Claude Desktop（`%APPDATA%\Claude\claude_desktop_config.json`）：
+
+```json
+{"mcpServers":{"wow-context":{"command":"powershell.exe","args":["-NoProfile","-ExecutionPolicy","Bypass","-File","C:\\path\\to\\wow-context-bridge\\mcp-server.ps1"]}}}
+```
+
+Codex（`~/.codex/config.toml`）：
+
+```toml
+[mcp_servers.wow-context]
+command = "powershell.exe"
+args = ["-NoProfile","-ExecutionPolicy","Bypass","-File","C:\\path\\to\\wow-context-bridge\\mcp-server.ps1"]
+```
+
+</details>
+
+## 隐私与安全
+
+- 插件只使用游戏公开的插件 API。不读游戏内存、不模拟输入、不发聊天、不开端口、不连接任何服务器。
+- **插件会开启游戏的聊天记录，记录里也有私聊和其他聊天内容。** 读取器只提取自己的 `LCB1` 数据行，不会删除这份记录。玩一小时，日志大约增加 12 MB。
+- `player.json` 和 `history.jsonl` 包含角色名和位置，已被 git 忽略，请不要分享。
+- 游戏里的文字（任务名、物品名）作为数据交给 AI，AI 被要求不要把它们当成指令执行。
+
+## 限制
+
+- 每 15 秒一次快照，战斗中暂停；超过 60 秒的数据会被标记为过期。
+- 任务日志里折叠分类下的任务可能读不到，数据中会用 `questLogMayBeIncomplete` 标明。
+- 只支持 Interface 16001。其他客户端、版本和语言未测试。
+- 顾问对 Forever 特有的任务位置了解有限，不确定时它被要求直说，而不是编造。
+
+## 开发
+
+- 从 [HANDOFF.md](HANDOFF.md)、[docs/TASKS.md](docs/TASKS.md) 和 [docs/START_HERE.md](docs/START_HERE.md) 开始。AI 编程助手的规则在 [AGENTS.md](AGENTS.md)（Claude Code 通过 `CLAUDE.md` 读取）。`docs/` 下的开发文档是中文。
+- 测试（均为模拟数据，不等于实机测试）：
+  - `pwsh -File test-reader.ps1`：读取器。
+  - `python tests/test_mcp.py`：MCP 服务器。
+  - `python tests/test_install_mcp.py`：客户端配置。
+  - `python tests/test_check_setup.py`：安装检查。
+  - `python tests/test_addon.py`：在 Lua 5.1 中运行插件；需要 `pip install lupa==2.8`。
+
+  可以用 `PWSH` 环境变量指定 Python 测试使用哪个 PowerShell。`test-reader.ps1` 含中文：在 Windows PowerShell 5.1 上要先另存为带 BOM 的 UTF-8，或者改用 PowerShell 7。
+
+## 许可与声明
+
+[MIT](LICENSE)。这是独立的玩家项目，与暴雪娱乐无关，也未获其认可。World of Warcraft（魔兽世界）是暴雪娱乐的商标。请按游戏条款和插件政策使用插件。
