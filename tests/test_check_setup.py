@@ -18,7 +18,8 @@ def check(cond, label):
 
 
 def ps(command):
-    p = subprocess.run([PWSH, '-NoProfile', '-Command', command], capture_output=True, timeout=60)
+    env = dict(os.environ, WOW_CONTEXT_NO_SYSTEM_SEARCH='1')  # only the fake folders below
+    p = subprocess.run([PWSH, '-NoProfile', '-Command', command], capture_output=True, timeout=60, env=env)
     return p.returncode, p.stdout.decode('utf-8', 'replace'), p.stderr.decode('utf-8', 'replace')
 
 
@@ -39,8 +40,12 @@ wow2 = tmp / 'E' / 'World of Warcraft'
 (wow2 / '_forever_' / 'Wow.exe').write_bytes(b'')
 code, out, err = ps(f". '{common}'; try {{ Resolve-ForeverRoot '' @('{wow1}','{wow2}') }} catch {{ 'ERR:' + $_.Exception.Message }}")
 check('Several' in out and str(wow2 / '_forever_') in out, 'several folders: asks the user to choose with -GameRoot')
+macwow = tmp / 'Applications' / 'World of Warcraft'
+(macwow / '_forever_' / 'World of Warcraft.app' / 'Contents').mkdir(parents=True)
+_, out, _ = ps(f". '{common}'; Resolve-ForeverRoot '' @('{macwow}')")
+check(out.strip() == str(macwow / '_forever_'), 'macOS layout (World of Warcraft.app, no Wow.exe) is detected')
 code, out, err = ps(f". '{common}'; try {{ Resolve-ForeverRoot '{tmp / 'nowhere'}' }} catch {{ 'ERR:' + $_.Exception.Message }}")
-check(out.startswith('ERR:') and 'Wow.exe' in out, 'wrong -GameRoot gives a clear error')
+check(out.startswith('ERR:') and '_forever_' in out, 'wrong -GameRoot gives a clear error')
 
 # ---------- check-setup ----------
 game = wow1 / '_forever_'

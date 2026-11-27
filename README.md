@@ -17,13 +17,13 @@ WoW Forever ─▶ LocalContext addon ─▶ game chat log ─▶ start.bat read
 **Full guide: [INSTALL.md](INSTALL.md)**. It covers you, your friends, and AI agents installing it for someone. In short:
 
 1. Download this repository to a permanent folder.
-2. Double-click `start.bat`. It finds the game, installs the addon and starts reading. Keep the window open.
+2. Double-click `start.bat` (Windows) or `start.command` (macOS). It finds the game, installs the addon and starts reading. Keep the window open.
 3. Fully restart the game and log in.
-4. Double-click `install-mcp.bat`, then fully reopen your AI client.
-5. Double-click `check-setup.bat` to verify every step.
+4. Double-click `install-mcp.bat` / `install-mcp.command`, then fully reopen your AI client.
+5. Double-click `check-setup.bat` / `check-setup.command` to verify every step.
 6. Ask: "What should this character do next?"
 
-Requirements: Windows and the WoW Forever client. Verified on 1.60.1.71139, Interface 16001, zhCN. Nothing to install besides the built-in Windows PowerShell.
+Requirements: Windows or macOS, and the WoW Forever client (verified on 1.60.1.71139, Interface 16001, zhCN). Windows needs nothing else. macOS needs PowerShell 7 (`brew install --cask powershell`).
 
 ## What the AI can see
 
@@ -41,19 +41,19 @@ MCP tools: `get_player_context`, `get_quests`, `get_equipment`, `get_recent_chan
 
 | Client | How |
 | --- | --- |
-| Claude Desktop | `install-mcp.bat` configures it (including the Microsoft Store version) |
-| Codex / ChatGPT desktop app | `install-mcp.bat` writes `~/.codex/config.toml`; the ChatGPT desktop app's Codex settings use the same file (reported by third parties, not yet verified by us) |
+| Claude Desktop | `install-mcp` configures it on Windows (including the Microsoft Store version) and macOS |
+| Codex / ChatGPT desktop app | `install-mcp` writes `~/.codex/config.toml`; the ChatGPT desktop app's Codex settings use the same file (reported by third parties, not yet verified by us) |
 | Claude Code | `claude mcp add wow-context -- powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\path\to\wow-context-bridge\mcp-server.ps1` |
 | Web or mobile chat | Not supported: they cannot reach files on your PC |
 
-The AI client must run on the same Windows PC as the game. Keep `start.bat` running; the MCP server only reads files and collects nothing itself.
+The AI client must run on the same computer as the game. Keep `start.bat` / `start.command` running; the MCP server only reads files and collects nothing itself.
 
 <details>
 <summary>Manual configuration</summary>
 
-Replace the path with this folder's real location.
+Replace the path with this folder's real location. On macOS use the full path of `pwsh` as the command and drop `-ExecutionPolicy Bypass`.
 
-Claude Desktop (`%APPDATA%\Claude\claude_desktop_config.json`):
+Claude Desktop (Windows `%APPDATA%\Claude\claude_desktop_config.json`, macOS `~/Library/Application Support/Claude/claude_desktop_config.json`):
 
 ```json
 {"mcpServers":{"wow-context":{"command":"powershell.exe","args":["-NoProfile","-ExecutionPolicy","Bypass","-File","C:\\path\\to\\wow-context-bridge\\mcp-server.ps1"]}}}
@@ -80,7 +80,7 @@ args = ["-NoProfile","-ExecutionPolicy","Bypass","-File","C:\\path\\to\\wow-cont
 
 - Snapshots every 15 seconds, paused in combat. Data older than 60 seconds is marked stale.
 - Quests under collapsed quest-log headers may be missing; the data says so (`questLogMayBeIncomplete`).
-- Only Interface 16001 is supported. Other clients, versions and locales are untested.
+- Only Interface 16001 is supported. Other clients, versions and locales are untested. The Windows and macOS builds of 1.60.1.71139 are both supported.
 - The advisor knows little about Forever-specific quest locations; it is told to say when it isn't sure instead of inventing them.
 
 ## Development

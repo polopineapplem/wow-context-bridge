@@ -97,3 +97,7 @@ history.jsonl 只在等级、区域/子区域、任务增删/进度/完成、装
 ## D16 — 2026-11-27 — 新建干净的公开仓库，旧仓库存档
 
 不改写历史。原仓库（含真实快照备份、原始会话记录、真实姓名作者信息的完整历史）改名为 `polopineapplem/wow-context-bridge-archive`，保持 private。`polopineapplem/wow-context-bridge` 重新创建，从 D15 清理后的文件开始，只有一个提交，作者是 GitHub 用户名和 noreply 邮箱。以后的提交都用这个身份（仓库级 git config），不使用真实姓名或本机主机名。已有的 checkout 需要重新 clone。
+
+## D17 — 2026-11-27 — 同时支持 Windows 和 macOS
+
+用户在 Mac 上也装了 WoW Forever（`/Applications/World of Warcraft/_forever_`，macOS 版 1.60.1.71139 zhCN，有 `World of Warcraft.app`，没有 `Wow.exe`），要求两个平台都支持。插件 Lua 与平台无关。脚本改为：路径一律用 `/` 拼接；`lib/common.ps1` 同时识别 `Wow.exe` 和 `World of Warcraft.app`，在 Mac 上查找 `/Applications` 和 `~/Applications`，找到 macOS 的 Claude Desktop 配置；AI 客户端启动命令在 Windows 用系统 `powershell.exe`，在 macOS 用当前 `pwsh` 的真实路径。新增 `.command` 双击启动文件。macOS 需要先安装 PowerShell 7。取代此前“采集只支持 Windows”的说法。

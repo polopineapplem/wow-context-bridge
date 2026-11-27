@@ -17,13 +17,13 @@ WoW Forever ─▶ LocalContext 插件 ─▶ 游戏聊天日志 ─▶ start.ba
 **完整步骤见 [INSTALL.zh-CN.md](INSTALL.zh-CN.md)**，自己安装、朋友安装、请 AI 助手帮忙安装都适用。简要流程：
 
 1. 下载本仓库，放到固定位置。
-2. 双击 `start.bat`：自动找到游戏、安装插件、开始读取。窗口保持开着。
+2. 双击 `start.bat`（Windows）或 `start.command`（macOS）：自动找到游戏、安装插件、开始读取。窗口保持开着。
 3. 完全重启游戏并登录角色。
-4. 双击 `install-mcp.bat`，然后完全重开 AI 客户端。
-5. 双击 `check-setup.bat`，逐项检查。
+4. 双击 `install-mcp.bat` / `install-mcp.command`，然后完全重开 AI 客户端。
+5. 双击 `check-setup.bat` / `check-setup.command`，逐项检查。
 6. 问 AI：“这个角色下一步做什么？”
 
-需要：Windows 和 WoW Forever 客户端。已验证版本：1.60.1.71139、Interface 16001、zhCN。除了系统自带的 Windows PowerShell，不需要安装任何东西。
+需要：Windows 或 macOS，以及 WoW Forever 客户端（已验证版本：1.60.1.71139、Interface 16001、zhCN）。Windows 不需要再装任何东西；macOS 需要 PowerShell 7（`brew install --cask powershell`）。
 
 ## AI 能看到什么
 
@@ -41,19 +41,19 @@ MCP 工具：`get_player_context`、`get_quests`、`get_equipment`、`get_recent
 
 | 客户端 | 方式 |
 | --- | --- |
-| Claude Desktop | `install-mcp.bat` 自动配置（包括 Microsoft Store 版） |
-| Codex / ChatGPT 桌面客户端 | `install-mcp.bat` 写入 `~/.codex/config.toml`；据第三方资料，ChatGPT 桌面客户端的 Codex 设置使用同一份文件（我们尚未实测） |
+| Claude Desktop | `install-mcp` 在 Windows（包括 Microsoft Store 版）和 macOS 上自动配置 |
+| Codex / ChatGPT 桌面客户端 | `install-mcp` 写入 `~/.codex/config.toml`；据第三方资料，ChatGPT 桌面客户端的 Codex 设置使用同一份文件（我们尚未实测） |
 | Claude Code | `claude mcp add wow-context -- powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\path\to\wow-context-bridge\mcp-server.ps1` |
 | 网页版、手机版 | 不支持：它们读不到你电脑上的文件 |
 
-AI 客户端必须和游戏在同一台 Windows 电脑上。`start.bat` 要保持运行；MCP 服务器只读文件，本身不采集数据。
+AI 客户端必须和游戏在同一台电脑上。`start.bat` / `start.command` 要保持运行；MCP 服务器只读文件，本身不采集数据。
 
 <details>
 <summary>手动配置</summary>
 
-把路径换成本文件夹的实际位置。
+把路径换成本文件夹的实际位置。macOS 上 command 用 `pwsh` 的完整路径，并去掉 `-ExecutionPolicy Bypass`。
 
-Claude Desktop（`%APPDATA%\Claude\claude_desktop_config.json`）：
+Claude Desktop（Windows：`%APPDATA%\Claude\claude_desktop_config.json`；macOS：`~/Library/Application Support/Claude/claude_desktop_config.json`）：
 
 ```json
 {"mcpServers":{"wow-context":{"command":"powershell.exe","args":["-NoProfile","-ExecutionPolicy","Bypass","-File","C:\\path\\to\\wow-context-bridge\\mcp-server.ps1"]}}}
@@ -80,7 +80,7 @@ args = ["-NoProfile","-ExecutionPolicy","Bypass","-File","C:\\path\\to\\wow-cont
 
 - 每 15 秒一次快照，战斗中暂停；超过 60 秒的数据会被标记为过期。
 - 任务日志里折叠分类下的任务可能读不到，数据中会用 `questLogMayBeIncomplete` 标明。
-- 只支持 Interface 16001。其他客户端、版本和语言未测试。
+- 只支持 Interface 16001。其他客户端、版本和语言未测试。1.60.1.71139 的 Windows 版和 macOS 版都支持。
 - 顾问对 Forever 特有的任务位置了解有限，不确定时它被要求直说，而不是编造。
 
 ## 开发

@@ -10,26 +10,29 @@ AI agents installing this for someone: see "Steps for AI agents" below.
 
 ## What you need
 
-- A **Windows** PC with the **WoW Forever** client (a `_forever_` folder that contains `Wow.exe`). Verified on 1.60.1.71139, Interface 16001, Simplified Chinese client. The addon only sends data on Interface 16001.
+- A **Windows** PC or a **Mac** with the **WoW Forever** client (a `_forever_` folder containing `Wow.exe` on Windows, or `World of Warcraft.app` on macOS). Verified on 1.60.1.71139, Interface 16001, Simplified Chinese client. The addon only sends data on Interface 16001.
 - At least one AI desktop client: Claude Desktop, the ChatGPT desktop app, or Codex. Web versions cannot read local data.
-- Nothing else to install: the built-in Windows PowerShell is enough. No Python needed.
+- **Windows:** nothing else to install; the built-in Windows PowerShell is enough.
+- **macOS:** install PowerShell 7 once: `brew install --cask powershell` (or Microsoft's installer). No Python needed.
+
+Each step below names the Windows file (`.bat`) and the Mac file (`.command`); double-click the one for your system. On a Mac the first double-click may be blocked by Gatekeeper; then right-click the file → Open.
 
 ## First-time install
 
 1. **Download this repository.** On the GitHub page click Code → Download ZIP and unzip it, or `git clone` it. Put it somewhere permanent, for example `Documents\wow-context-bridge`, and don't move it later: the AI client configuration remembers this path.
-2. **Double-click `start.bat`.** It will:
+2. **Double-click `start.bat`** (Windows) **or `start.command`** (macOS). It will:
    - find the game folder automatically (if it finds none or several, it tells you; see "Troubleshooting" for `-GameRoot`);
    - copy the `LocalContext` addon into the game's `Interface\AddOns`;
    - start reading data. **Keep this window open.**
 3. **Fully quit the game and start it again**, then log in to a character. An addon installed while the game is running only loads after a restart.
-4. **Double-click `install-mcp.bat`.** It registers this tool with Claude Desktop and Codex / the ChatGPT desktop app. Your existing settings are kept, and a backup is written before any change.
+4. **Double-click `install-mcp.bat` / `install-mcp.command`.** It registers this tool with Claude Desktop and Codex / the ChatGPT desktop app. Your existing settings are kept, and a backup is written before any change.
 5. **Fully quit and reopen your AI client** (also quit it from the tray icon).
-6. **Double-click `check-setup.bat`** to check each step. When every line says `[PASS]` you are done; each `[FAIL]` shows how to fix it.
+6. **Double-click `check-setup.bat` / `check-setup.command`** to check each step. When every line says `[PASS]` you are done; each `[FAIL]` shows how to fix it.
 7. Ask your AI client: **"What should this character do next?"** The answer should mention how many seconds old the data is.
 
 ## Every time you play
 
-Double-click `start.bat` first (keep the window open), then start the game. The AI client needs no further setup. If `start.bat` isn't running, the AI will tell you the reader is not running and the data is old.
+Double-click `start.bat` / `start.command` first (keep the window open), then start the game. The AI client needs no further setup. If `start.bat` isn't running, the AI will tell you the reader is not running and the data is old.
 
 ## Updating
 
@@ -37,7 +40,7 @@ Download the new version over the old folder (or `git pull`), double-click `star
 
 ## Uninstalling
 
-1. In PowerShell, run `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install-mcp.ps1 -Uninstall` to remove the tool from your AI client configuration.
+1. Run `install-mcp.ps1 -Uninstall` (Windows: `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install-mcp.ps1 -Uninstall`; macOS: `pwsh -NoProfile -File ./install-mcp.ps1 -Uninstall`) to remove the tool from your AI client configuration.
 2. Delete `Interface\AddOns\LocalContext` in the game folder (or disable it in the in-game addon list).
 3. Delete this folder.
 
@@ -53,7 +56,8 @@ Run `check-setup.bat` first; it tells you which step is broken.
 
 | Problem | Fix |
 | --- | --- |
-| Game folder not found, or several found | Open PowerShell in this folder and run `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\start.ps1 -GameRoot 'E:\your\path\World of Warcraft\_forever_'` |
+| Game folder not found, or several found | Windows: `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\start.ps1 -GameRoot 'E:\your\path\World of Warcraft\_forever_'`. macOS: `pwsh -NoProfile -File ./start.ps1 -GameRoot '/Applications/World of Warcraft/_forever_'` |
+| Mac: "pwsh not found" | `brew install --cask powershell`, then double-click again |
 | The AI says there is no character data | Make sure you restarted the game and logged in, `start.bat` is open, and wait about 20 seconds |
 | The AI says the data is minutes old | Normal during combat, loading screens or when logged out; otherwise check the "game log" step of `check-setup.bat` |
 | wow-context doesn't appear in the AI client | Run `install-mcp.bat` again, then **fully** quit and reopen the client |
@@ -63,7 +67,7 @@ Run `check-setup.bat` first; it tells you which step is broken.
 
 For AI agents (Codex, Claude Code, ...) installing this for a user. Run commands from the repository root.
 
-1. Confirm this is Windows, then find the game folder: run `check-setup.ps1 -Json` (run every `.ps1` below as `powershell.exe -NoProfile -ExecutionPolicy Bypass -File <script>`) and read the `game folder` entry. If several folders are found, **ask the user which one**; never guess.
+1. Find the game folder: run `check-setup.ps1 -Json` (run every `.ps1` below as `powershell.exe -NoProfile -ExecutionPolicy Bypass -File <script>` on Windows, or `pwsh -NoProfile -File <script>` on macOS; install PowerShell 7 on a Mac first, telling the user) and read the `game folder` entry. If several folders are found, **ask the user which one**; never guess.
 2. Run `start.ps1` (add `-GameRoot` if needed). It installs the addon and keeps running. Run it in the background or a separate window, and record the exact command line. Never stop a process just because an old PID file matches it.
 3. If the game is already running, **ask the user** to restart it and log in. Never operate the game for the user or send it any input.
 4. Run `install-mcp.ps1` (add `-DryRun` to preview). It changes only the `wow-context` entry and writes a backup first.

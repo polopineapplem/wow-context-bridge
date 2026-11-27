@@ -22,6 +22,7 @@ MVP 目标（2026-11-27 用户确认）：任意 AI（ChatGPT 优先，Claude/Co
 | T7 | 实际游玩差分验证 | todo | 用户正常游玩时观察到坐标、任务进度、装备至少各一次变化；不自动控制角色 |
 | T8 | 一键运行更可靠 | doing（目录自动查找 + check-setup 已做，模拟） | 自动发现 Forever 安装目录（多个候选时询问）；启动/停止按命令行核实进程而非旧 PID；第二台电脑路径不同也能运行 |
 | T13 | 公开仓库 | done | 以干净的单一提交新建公开仓库；旧历史保留在私有存档仓库（D16） |
+| T14 | macOS 支持 | doing | 脚本与启动文件已支持 Mac（D17），检测已在真实 Mac 安装上通过；等待第一次真实游戏运行 |
 | T10 | 验证 Windows PowerShell 5.1 兼容 | doing（代码审查完成，需游戏电脑实测） | start.ps1、mcp-server.ps1、install-mcp.ps1 在 5.1 下通过测试（目前只在 7.7 上测过；已加 5.1 数组序列化修复） |
 | T11 | 一键配置 MCP（install-mcp.bat） | done（模拟） | 自动写入 Claude Desktop（含 Microsoft Store 版路径）和 ~/.codex/config.toml；保留其他设置、备份、可重复、可卸载；实机未测 |
 | T12 | 游戏顾问提示 what_next | done（模拟） | docs/ADVISOR.md 为唯一规则来源；MCP prompts/list、prompts/get；实机效果未测 |

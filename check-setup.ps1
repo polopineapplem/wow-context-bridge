@@ -25,21 +25,21 @@ function Sha([string]$path) {
 }
 
 # 1. Platform
-$isWin=($env:OS -eq 'Windows_NT')
-if ($isWin) { Add-Result 'platform' 'PASS' ("Windows, PowerShell " + $PSVersionTable.PSVersion) '' }
-else { Add-Result 'platform' 'WARN' 'Not Windows: collection only works on the Windows PC that runs the game.' 'Run this on the game PC.' }
+if (Test-IsWindows) { Add-Result 'platform' 'PASS' ("Windows, PowerShell " + $PSVersionTable.PSVersion) '' }
+elseif (Test-IsMac) { Add-Result 'platform' 'PASS' ("macOS, PowerShell " + $PSVersionTable.PSVersion) '' }
+else { Add-Result 'platform' 'WARN' 'Not Windows or macOS: untested.' 'Run this on the computer that runs the game.' }
 
 # 2. Game folder
 $root=$null
 try { $root=Resolve-ForeverRoot $GameRoot; Add-Result 'game folder' 'PASS' $root '' }
-catch { Add-Result 'game folder' 'FAIL' $_.Exception.Message 'Run start.bat with -GameRoot set to the _forever_ folder that contains Wow.exe.' }
+catch { Add-Result 'game folder' 'FAIL' $_.Exception.Message 'Run start.bat (Windows) or start.command (macOS) with -GameRoot set to the _forever_ folder.' }
 
 if ($root) {
   # 3. Addon installed and current
   $installed=Join-Path $root 'Interface/AddOns/LocalContext/LocalContext.lua'
   $repoLua=Join-Path $PSScriptRoot 'LocalContext/LocalContext.lua'
-  if (!(Test-Path -LiteralPath $installed)) { Add-Result 'addon' 'FAIL' 'LocalContext addon is not installed.' 'Run start.bat (it copies the addon), then fully restart the game.' }
-  elseif ((Sha $installed) -ne (Sha $repoLua)) { Add-Result 'addon' 'WARN' 'Installed addon differs from this checkout.' 'Run start.bat to update it, then restart the game or /reload.' }
+  if (!(Test-Path -LiteralPath $installed)) { Add-Result 'addon' 'FAIL' 'LocalContext addon is not installed.' 'Run start.bat or start.command (it copies the addon), then fully restart the game.' }
+  elseif ((Sha $installed) -ne (Sha $repoLua)) { Add-Result 'addon' 'WARN' 'Installed addon differs from this checkout.' 'Run start.bat or start.command to update it, then restart the game or /reload.' }
   else { Add-Result 'addon' 'PASS' 'Installed and matches this checkout.' '' }
 
   # 4. Game is writing LCB1 lines
@@ -61,21 +61,21 @@ if ($root) {
 }
 
 # 5. Reader output
-if (!(Test-Path -LiteralPath $PlayerPath)) { Add-Result 'reader' 'FAIL' 'player.json not found.' 'Run start.bat and keep its window open.' }
+if (!(Test-Path -LiteralPath $PlayerPath)) { Add-Result 'reader' 'FAIL' 'player.json not found.' 'Run start.bat (Windows) or start.command (macOS) and keep its window open.' }
 else {
   try {
     $p=[IO.File]::ReadAllText($PlayerPath,$utf8) | ConvertFrom-Json
     $now=[DateTimeOffset]::UtcNow
     $lag=$null
     if ($p.freshness -and $p.freshness.checkedAt) { $lag=[int]($now-[DateTimeOffset]::Parse([string]$p.freshness.checkedAt,[Globalization.CultureInfo]::InvariantCulture)).TotalSeconds }
-    if ($null -eq $lag -or $lag -gt 15) { Add-Result 'reader' 'FAIL' "Reader is not running (player.json last refreshed $lag s ago)." 'Run start.bat and keep its window open.' }
+    if ($null -eq $lag -or $lag -gt 15) { Add-Result 'reader' 'FAIL' "Reader is not running (player.json last refreshed $lag s ago)." 'Run start.bat (Windows) or start.command (macOS) and keep its window open.' }
     elseif ($p.status -ne 'snapshot_received') { Add-Result 'reader' 'WARN' 'Reader is running but has no character data yet.' 'Log in to a character in the game; wait about 20 seconds.' }
     else {
       $age=$now.ToUnixTimeSeconds()-[long]$p.capturedAt
       if ($age -gt 60) { Add-Result 'reader' 'WARN' "Last snapshot is $age s old." 'Normal in combat, loading screens or when logged out. Otherwise check the game log step.' }
       else { Add-Result 'reader' 'PASS' ("Live: {0}, level {1}, {2}; {3} s old." -f $p.character.name,$p.character.level,$p.location.zone,$age) '' }
     }
-  } catch { Add-Result 'reader' 'FAIL' 'player.json is unreadable.' 'Restart start.bat.' }
+  } catch { Add-Result 'reader' 'FAIL' 'player.json is unreadable.' 'Restart start.bat or start.command.' }
 }
 
 # 6. MCP server answers
@@ -106,10 +106,10 @@ foreach ($c in @(@{name='Claude Desktop';path=$claude},@{name='Codex / ChatGPT d
   if ($c.path -and (Test-Path -LiteralPath $c.path) -and (Test-Points ([IO.File]::ReadAllText($c.path,$utf8)))) {
     Add-Result "client: $($c.name)" 'PASS' "Configured in $($c.path)" ''; $configured++
   } else {
-    Add-Result "client: $($c.name)" 'WARN' 'Not configured for this checkout.' 'Run install-mcp.bat, then fully quit and reopen the client.'
+    Add-Result "client: $($c.name)" 'WARN' 'Not configured for this checkout.' 'Run install-mcp.bat (Windows) or install-mcp.command (macOS), then fully quit and reopen the client.'
   }
 }
-if ($configured -eq 0) { Add-Result 'ai client' 'FAIL' 'No AI client is configured to use this checkout.' 'Run install-mcp.bat, then fully quit and reopen Claude Desktop or the ChatGPT desktop app.' }
+if ($configured -eq 0) { Add-Result 'ai client' 'FAIL' 'No AI client is configured to use this checkout.' 'Run install-mcp.bat (Windows) or install-mcp.command (macOS), then fully quit and reopen Claude Desktop or the ChatGPT desktop app.' }
 
 $fail=@($results | Where-Object { $_.status -eq 'FAIL' }).Count
 if ($Json) { [pscustomobject]@{ok=($fail -eq 0);results=$results} | ConvertTo-Json -Depth 5 }

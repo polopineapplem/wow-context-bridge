@@ -19,7 +19,7 @@ if (!$SkipInstall -or !$LogPath) {
   try { $GameRoot=Resolve-ForeverRoot $GameRoot } catch { Write-Host $_.Exception.Message -ForegroundColor Yellow; exit 2 }
   Write-Host "Game folder: $GameRoot"
 }
-if (!$LogPath) { $LogPath=Join-Path $GameRoot 'Logs\WoWChatLog.txt' }
+if (!$LogPath) { $LogPath=Join-Path $GameRoot 'Logs/WoWChatLog.txt' }
 if (!$HistoryPath) { $HistoryPath=Join-Path (Split-Path -Parent ([IO.Path]::GetFullPath($OutputPath))) 'history.jsonl' }
 $hash=[Security.Cryptography.SHA256]::Create()
 $lockKey=([BitConverter]::ToString($hash.ComputeHash([Text.Encoding]::UTF8.GetBytes([IO.Path]::GetFullPath($OutputPath))))).Replace('-','')
@@ -27,11 +27,11 @@ $mutex=New-Object Threading.Mutex($false,('Local\WoWContext-'+$lockKey))
 try { $locked=$mutex.WaitOne(0) } catch [Threading.AbandonedMutexException] { $locked=$true }
 if (!$locked) { Write-Host 'Reader is already running for this output.'; exit 0 }
 if (!$SkipInstall) {
-  $addons=Join-Path $GameRoot 'Interface\AddOns'
+  $addons=Join-Path $GameRoot 'Interface/AddOns'
   # Copy-Item into a missing folder would create AddOns as a copy of LocalContext itself.
   if (!(Test-Path -LiteralPath $addons)) { $null=New-Item -ItemType Directory -Path $addons -Force }
   Copy-Item (Join-Path $PSScriptRoot 'LocalContext') $addons -Recurse -Force
-  Write-Host "Addon installed: $addons\LocalContext (restart the game if it was already running)"
+  Write-Host "Addon installed: $(Join-Path $addons 'LocalContext') (restart the game if it was already running)"
 }
 $utf8=New-Object System.Text.UTF8Encoding($false,$true)
 

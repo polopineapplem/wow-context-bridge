@@ -5,6 +5,7 @@ Read `HANDOFF.md`, `docs/TASKS.md`, `docs/DECISIONS.md`, then `docs/START_HERE.m
 - Keep the MVP local, read-only, and without a game UI. Do not add memory access, input automation, or cloud databases. A read-only MCP server is approved (see `docs/DECISIONS.md` D1); any public endpoint or tunnel still needs explicit user approval (D4).
 - Preserve Chinese names and Forever version specificity. Do not substitute Retail/Classic Era assumptions for verified Forever behavior.
 - The user prefers execution over repeated permission questions, and no manual copying/uploading. Act within authorization; explain concrete authentication or environment blockers.
+- Support both Windows (Windows PowerShell 5.1) and macOS (PowerShell 7) for every script; join paths with `/`, never hard-code `\\`-only paths (D17).
 - Keep real game tests distinct from mock tests. Historical snapshots are not live context, even if their saved freshness says otherwise.
 - Do not commit raw chat logs, credentials, PID files, runtime output, or Python environments. The repository is prepared for public release: never commit real character data (names, live snapshots), local absolute paths, chat IDs or emails. Test data goes in `tests/fixtures/` with identities removed. Do not add automatic snapshot uploads.
 - Check both `freshness` and the age of `capturedAt`, plus `capabilities`, `errors`, and `questLogMayBeIncomplete` before using a snapshot for advice. When the user asks for gameplay advice ("what next"), follow `docs/ADVISOR.md`.

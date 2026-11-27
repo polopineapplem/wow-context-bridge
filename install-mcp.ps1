@@ -5,7 +5,7 @@ param(
   [string]$CodexConfigPath,
   [string]$ServerName='wow-context'
 )
-# Registers mcp-server.ps1 (this checkout) with local desktop AI clients:
+# Registers mcp-server.ps1 (this checkout) with local desktop AI clients on Windows or macOS:
 #   Claude Desktop  -> claude_desktop_config.json (mcpServers)
 #   Codex / ChatGPT desktop Codex settings -> ~/.codex/config.toml ([mcp_servers.<name>])
 # Existing entries are preserved; a timestamped .bak is written before any change.
@@ -16,11 +16,7 @@ try { Remove-TypeData System.Array -ErrorAction Stop } catch { }
 $utf8=New-Object Text.UTF8Encoding($false)
 $server=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'mcp-server.ps1'))
 if (!(Test-Path -LiteralPath $server)) { throw "mcp-server.ps1 not found next to this script: $server" }
-$psExe='powershell.exe'
-if ($env:SystemRoot) {
-  $full=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
-  if (Test-Path -LiteralPath $full) { $psExe=$full }
-}
+$psExe=Get-PowerShellCommand
 $serverArgs=@('-NoProfile','-ExecutionPolicy','Bypass','-File',$server)
 $stamp=(Get-Date).ToString('yyyyMMdd-HHmmss')
 
@@ -103,5 +99,5 @@ Update-Codex (Find-CodexConfig)
 if (!$DryRun) {
   Write-Host ''
   Write-Host 'Done. Fully quit and reopen Claude Desktop / ChatGPT desktop / Codex so they load the change.'
-  Write-Host 'Keep start.bat running so player.json stays current.'
+  Write-Host 'Keep start.bat (Windows) or start.command (macOS) running so player.json stays current.'
 }
