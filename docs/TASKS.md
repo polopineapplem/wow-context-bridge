@@ -26,6 +26,8 @@ MVP 目标（2026-11-27 用户确认）：任意 AI（ChatGPT 优先，Claude/Co
 | T10 | 验证 Windows PowerShell 5.1 兼容 | doing（代码审查完成，需游戏电脑实测） | start.ps1、mcp-server.ps1、install-mcp.ps1 在 5.1 下通过测试（目前只在 7.7 上测过；已加 5.1 数组序列化修复） |
 | T11 | 一键配置 MCP（install-mcp.bat） | done（模拟） | 自动写入 Claude Desktop（含 Microsoft Store 版路径）和 ~/.codex/config.toml；保留其他设置、备份、可重复、可卸载；实机未测 |
 | T12 | 游戏顾问提示 what_next | done（模拟） | docs/ADVISOR.md 为唯一规则来源；MCP prompts/list、prompts/get；实机效果未测 |
+| T15 | Forever 知识库 | todo | 先调研现有数据来源（如 Questie 是否有 Forever 数据、Forever 攻略站）；补充客户端拿不到的信息：怪物是否精英、掉落与掉率、NPC 位置；来源可追溯，不用经典版数据冒充 Forever |
+| T16 | 云端远程 MCP（D20） | todo | 本机读取器把快照推到一个免费的托管服务；ChatGPT 自定义连接器（远程 MCP，HTTPS + 访问令牌）调用 get_player_context；新鲜度与本地一致（约 15 秒）；令牌不进仓库；可关闭上传；先确认 ChatGPT 连接器要求和免费额度 |
 | T9 | 日志量与恢复 | todo | 量化填充开销、落盘延迟、磁盘增长；I/O 异常恢复；同尺寸日志替换识别；不自动删除聊天日志 |
 
 ## 已完成
