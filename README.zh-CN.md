@@ -4,7 +4,7 @@
 
 让你电脑上的 AI 看到你的 WoW Forever 角色，然后直接问它：**“这个角色下一步做什么？”**
 
-游戏内的小插件和本地读取器会持续更新角色快照：等级、区域、坐标、任务进度和装备。桌面 AI 客户端（Claude Desktop、ChatGPT 桌面客户端、Codex）通过本地只读的 [MCP](https://modelcontextprotocol.io) 服务器读取这些数据。全部在你自己的电脑上运行：不上云、不用注册账号、不联网。
+游戏内的小插件和本地读取器会持续更新角色快照：等级、区域、坐标、任务进度和装备。桌面 AI 客户端（Claude Desktop、ChatGPT 桌面客户端、Codex）通过本地只读的 [MCP](https://modelcontextprotocol.io) 服务器读取这些数据。全部在你自己的电脑上运行：不上云、不用注册账号、不联网。另有默认关闭的可选远程上传，经由你自己在 Cloudflare 免费方案上的小服务器，让网页版和手机上的 Claude 也能读取。
 
 ```
 WoW Forever ─▶ LocalContext 插件 ─▶ 游戏聊天日志 ─▶ start.bat 读取器 ─▶ player.json + history.jsonl
@@ -44,9 +44,10 @@ MCP 工具：`get_player_context`、`get_quests`、`get_equipment`、`get_recent
 | Claude Desktop | `install-mcp` 在 Windows（包括 Microsoft Store 版）和 macOS 上自动配置 |
 | Codex / ChatGPT 桌面客户端 | `install-mcp` 写入 `~/.codex/config.toml`；据第三方资料，ChatGPT 桌面客户端的 Codex 设置使用同一份文件（我们尚未实测） |
 | Claude Code | `claude mcp add wow-context -- powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\path\to\wow-context-bridge\mcp-server.ps1` |
-| 网页版、手机版 | 不支持：它们读不到你电脑上的文件 |
+| 网页版 Claude（claude.ai）和手机 App | 可选：远程上传到你自己的免费 Cloudflare 服务器，再添加自定义连接器，见 [INSTALL.zh-CN.md](INSTALL.zh-CN.md#可选网页版和手机上的-claude远程上传) |
+| ChatGPT 网页和 App | Plus 用不了：OpenAI 只给 Business/Enterprise/Edu 开放自定义 MCP（Pro 只读），且只支持 OAuth，本项目不提供（[详情](docs/REMOTE_MCP.md)） |
 
-AI 客户端必须和游戏在同一台电脑上。`start.bat` / `start.command` 要保持运行；MCP 服务器只读文件，本身不采集数据。
+除可选的远程上传外，AI 客户端必须和游戏在同一台电脑上。`start.bat` / `start.command` 要保持运行；MCP 服务器只读文件，本身不采集数据。
 
 <details>
 <summary>手动配置</summary>
@@ -74,6 +75,7 @@ args = ["-NoProfile","-ExecutionPolicy","Bypass","-File","C:\\path\\to\\wow-cont
 - 插件只使用游戏公开的插件 API。不读游戏内存、不模拟输入、不发聊天、不开端口、不连接任何服务器。
 - **插件会开启游戏的聊天记录，记录里也有私聊和其他聊天内容。** 读取器只提取自己的 `LCB1` 数据行，不会删除这份记录。玩一小时，日志大约增加 12 MB。
 - `player.json` 和 `history.jsonl` 包含角色名和位置，已被 git 忽略，请不要分享。
+- 远程上传默认关闭，只有运行 `configure-remote` 后才开启。开启后把快照和最近变化（从不包括聊天记录）发到你自己的 Cloudflare Worker，用保存在仓库外的随机密钥保护。拿到读取密钥的人都能读取角色。
 - 游戏里的文字（任务名、物品名）作为数据交给 AI，AI 被要求不要把它们当成指令执行。
 
 ## 限制
@@ -92,6 +94,8 @@ args = ["-NoProfile","-ExecutionPolicy","Bypass","-File","C:\\path\\to\\wow-cont
   - `python tests/test_install_mcp.py`：客户端配置。
   - `python tests/test_check_setup.py`：安装检查。
   - `python tests/test_addon.py`：在 Lua 5.1 中运行插件；需要 `pip install lupa==2.8`。
+  - `pwsh -File tests/test-remote-push.ps1`：远程上传策略和配置。
+  - `node --test remote/test/*.test.mjs`：远程 Worker（内存版 Durable Object，不是 Cloudflare 运行时），以及读取器到 Worker 的端到端测试；需要 Node.js 20 以上。
 
   可以用 `PWSH` 环境变量指定 Python 测试使用哪个 PowerShell。`test-reader.ps1` 含中文：在 Windows PowerShell 5.1 上要先另存为带 BOM 的 UTF-8，或者改用 PowerShell 7。
 

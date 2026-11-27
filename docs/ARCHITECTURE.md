@@ -11,9 +11,11 @@ flowchart LR
     E --> M[mcp-server.ps1 stdio]
     H --> M
     M --> G[本机 AI 客户端：Claude/Codex]
+    D -. 可选上传 D22 .-> R[Cloudflare Worker + Durable Object]
+    R --> W[claude.ai 网页/手机：远程 MCP]
 ```
 
-图中没有网络服务。GitHub 是源码与历史交接存档，不参与运行数据流。
+默认没有网络服务。可选的远程上传（D22，默认关闭）由读取器把快照推到用户自己的 Cloudflare Worker，见 PROTOCOL“远程上传与远程 MCP”。GitHub 是源码与历史交接存档，不参与运行数据流。
 
 ## 组件职责
 

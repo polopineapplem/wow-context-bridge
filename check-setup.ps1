@@ -11,6 +11,7 @@ param(
 $ErrorActionPreference='Stop'
 try { Remove-TypeData System.Array -ErrorAction Stop } catch { }
 . (Join-Path $PSScriptRoot 'lib/common.ps1')
+. (Join-Path $PSScriptRoot 'lib/remote.ps1')
 $utf8=New-Object Text.UTF8Encoding($false)
 $runtime=Get-RuntimeDir $PSScriptRoot
 if (!$PlayerPath) { $PlayerPath=Join-Path $runtime 'player.json' }
@@ -118,6 +119,13 @@ foreach ($c in @(@{name='Claude Desktop';path=$claude},@{name='Codex / ChatGPT d
   }
 }
 if ($configured -eq 0) { Add-Result 'ai client' 'FAIL' 'No AI client is configured to use this checkout.' 'Run install-mcp.bat (Windows) or install-mcp.command (macOS), then fully quit and reopen Claude Desktop or the ChatGPT desktop app.' }
+
+# 8. Optional remote upload (T16, D22). Reads the local config only; no network.
+try {
+  $rc=Read-RemoteConfig
+  if ($rc) { Add-Result 'remote upload' 'PASS' "On: $(([Uri]$rc.url).Host). Test the Worker with configure-remote -Check." '' }
+  else { Add-Result 'remote upload' 'PASS' 'Off (default). Only needed for claude.ai web/mobile.' '' }
+} catch { Add-Result 'remote upload' 'WARN' $_.Exception.Message 'Run configure-remote again, or configure-remote -Disable.' }
 
 $fail=@($results | Where-Object { $_.status -eq 'FAIL' }).Count
 if ($Json) { [pscustomobject]@{ok=($fail -eq 0);results=$results} | ConvertTo-Json -Depth 5 }

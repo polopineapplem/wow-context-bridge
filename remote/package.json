@@ -1,0 +1,11 @@
+{
+  "name": "wow-context-bridge-remote",
+  "private": true,
+  "type": "module",
+  "description": "Remote read-only MCP for wow-context-bridge (Cloudflare Worker + Durable Object).",
+  "scripts": {
+    "sync-advisor": "node scripts/sync-advisor.mjs",
+    "test": "node --test test/*.test.mjs",
+    "deploy": "node scripts/sync-advisor.mjs && npx wrangler@4 deploy"
+  }
+}

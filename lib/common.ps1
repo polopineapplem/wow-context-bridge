@@ -152,3 +152,25 @@ function Sync-McpServer([string]$checkout,[switch]$NoCopy) {
   Copy-Item -LiteralPath (Join-Path $checkout 'docs/ADVISOR.md') -Destination (Join-Path $docs 'ADVISOR.md') -Force
   return $dst
 }
+
+# Meaningful state of a snapshot: used by history.jsonl (start.ps1, D9) and the remote push policy (lib/remote.ps1, D22).
+function Get-Digest($s) {
+  $quests=@()
+  foreach ($q in @($s.quests)) {
+    if ($null -eq $q) { continue }
+    $progress=@()
+    foreach ($o in @($q.objectives)) {
+      if ($null -eq $o) { continue }
+      if ($null -ne $o.numRequired -and [int]$o.numRequired -gt 0) { $progress+=('{0}/{1}' -f $o.numFulfilled,$o.numRequired) }
+      elseif ($o.finished) { $progress+='done' } else { $progress+='todo' }
+    }
+    $quests+=[pscustomobject]@{id=$q.id;name=$q.name;complete=[bool]$q.complete;progress=($progress -join ',')}
+  }
+  $equip=@()
+  foreach ($e in @($s.equipment)) { if ($null -ne $e -and $null -ne $e.id) { $equip+=[pscustomobject]@{slot=$e.slot;id=$e.id;name=$e.name} } }
+  [pscustomobject]@{
+    name=$s.character.name; level=$s.character.level
+    mapID=$s.location.mapID; zone=$s.location.zone; subzone=$s.location.subzone
+    quests=@($quests | Sort-Object id); equipment=@($equip | Sort-Object slot)
+  }
+}

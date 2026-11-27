@@ -58,13 +58,12 @@ DO limits 页面对单个对象的存储上限前后不一致（表格 10 GB，F
 
 AI 读取：每次工具调用约 1 个 Worker 请求 + 1 个 DO 请求，几百次/天也可忽略。CPU：解析和返回一份 30–60 KB 的快照预计在 10 ms 以内，需要部署后实测。
 
-## 如果继续（未实施，等用户决定）
+## 实现（D22，2026-11-27，只做了模拟测试）
 
-方案设计保留在这里，用户选择后再实现：
+用户选择先给 claude.ai 使用。实现与原设计一致，细节见 `docs/PROTOCOL.md`“远程上传与远程 MCP”：
 
-- `remote/`：一个 Cloudflare Worker + 一个 SQLite Durable Object。
-  - `POST /upload`：`Authorization: Bearer <上传令牌>`，存最新快照（去掉原始聊天，只存 player.json 的字段）和最近的变化历史。
-  - `/mcp`：streamable HTTP，工具与 `mcp-server.ps1` 相同（只读、`readOnlyHint`），`what_next` 提示用 `docs/ADVISOR.md` 正文；新鲜度在服务器端计算，stale 阈值 4 分钟。
-  - 读取认证：Claude 用请求头 Bearer 令牌（与上传令牌分开）；ChatGPT（若可用）需要 OAuth，或无认证 + 地址里不可猜的随机路径（较弱，地址泄露即可读取）。
-- 本地上传：读取器里可选开启（默认关闭），地址和令牌放在仓库外、不提交的本地配置；推送策略按 D20。
-- 部署（`wrangler login`、`wrangler deploy`、`wrangler secret put`）和令牌生成由用户执行。
+- `remote/`：Cloudflare Worker + 一个 SQLite Durable Object（`wrangler.toml` 不含账户 ID、地址或令牌）。`POST /upload`（上传令牌）；`POST /mcp` 或 `/mcp/<读取令牌>`（读取令牌，streamable HTTP，只返回 JSON）；stale 阈值 4 分钟。
+- Claude 连接器的“Request headers”在官方文档里标为 beta、只对部分组织开放，所以同时支持把读取令牌放在 URL 路径里（Authentication 选 No sign-in）。路径令牌较弱：URL 泄露即可读取。
+- 本地：`lib/remote.ps1`（推送策略）在 `start.ps1` 里运行；`configure-remote.ps1`（+ `.bat`/`.command`）生成仓库外的 `remote.json`、可选调用 `wrangler secret put`、`-Check` 测试两把令牌；`check-setup` 显示上传开关（不联网）。
+- 部署、登录 Cloudflare、添加 Claude 连接器由用户执行（`INSTALL.md`“Optional: Claude on the web and phone”）。
+- ChatGPT 仍不可用（Plus 无自定义 MCP；需要 OAuth）。若以后用户换到支持的方案，可在 Worker 上增加 OAuth，另立任务。

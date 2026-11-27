@@ -14,6 +14,7 @@ $ErrorActionPreference='Stop'
 # Windows PowerShell 5.1: without this, ConvertTo-Json can emit arrays as {"value":[...],"Count":n}.
 try { Remove-TypeData System.Array -ErrorAction Stop } catch { }
 . (Join-Path $PSScriptRoot 'lib/common.ps1')
+. (Join-Path $PSScriptRoot 'lib/remote.ps1')
 if (!$OutputPath) {
   $runtime=Get-RuntimeDir $PSScriptRoot
   if (!(Test-Path -LiteralPath $runtime)) { $null=New-Item -ItemType Directory -Path $runtime -Force }
@@ -60,27 +61,6 @@ function Save-State {
 }
 
 # ---------- History (T2): append a line only when something meaningful changed ----------
-function Get-Digest($s) {
-  $quests=@()
-  foreach ($q in @($s.quests)) {
-    if ($null -eq $q) { continue }
-    $progress=@()
-    foreach ($o in @($q.objectives)) {
-      if ($null -eq $o) { continue }
-      if ($null -ne $o.numRequired -and [int]$o.numRequired -gt 0) { $progress+=('{0}/{1}' -f $o.numFulfilled,$o.numRequired) }
-      elseif ($o.finished) { $progress+='done' } else { $progress+='todo' }
-    }
-    $quests+=[pscustomobject]@{id=$q.id;name=$q.name;complete=[bool]$q.complete;progress=($progress -join ',')}
-  }
-  $equip=@()
-  foreach ($e in @($s.equipment)) { if ($null -ne $e -and $null -ne $e.id) { $equip+=[pscustomobject]@{slot=$e.slot;id=$e.id;name=$e.name} } }
-  [pscustomobject]@{
-    name=$s.character.name; level=$s.character.level
-    mapID=$s.location.mapID; zone=$s.location.zone; subzone=$s.location.subzone
-    quests=@($quests | Sort-Object id); equipment=@($equip | Sort-Object slot)
-  }
-}
-
 function Compare-Digest($old,$new) {
   $changes=@()
   if ($null -eq $old) { return @('baseline') }
@@ -222,6 +202,13 @@ Write-Host "Output: $OutputPath  History: $HistoryPath"
 Write-Host 'Start/login to Forever normally. No copying or commands required. Ctrl+C stops reader.'
 Write-Host 'Addon enables local chat logging, including whispers. It sends no network data.'
 Load-LastDigest
+# Optional remote upload (T16, D22): only when the user created remote.json with configure-remote.
+$remote=$null; $pushState=$null
+try { $remote=Read-RemoteConfig } catch { Write-Warning "$($_.Exception.Message) Remote upload is off." }
+if ($remote) {
+  $pushState=New-PushState
+  Write-Host "Remote upload ON: $(([Uri]$remote.url).Host) (snapshot and change history only, never the chat log). Turn off: configure-remote -Disable"
+} else { Write-Host 'Remote upload off (default).' }
 $iteration=0
 do {
   if (Test-Path -LiteralPath $LogPath) {
@@ -232,6 +219,10 @@ do {
     } finally { $f.Dispose() }
   }
   Save-State
+  if ($remote -and $state -and $state.character) {
+    $pushed=Invoke-RemotePushStep $pushState $remote $state $HistoryPath ([DateTimeOffset]::UtcNow.ToUnixTimeSeconds())
+    if ($pushed -eq 'first') { Write-Host 'Remote upload: first snapshot sent.' }
+  }
   $iteration++
   if ($Once -or ($Iterations -gt 0 -and $iteration -ge $Iterations)) { break }
   Start-Sleep -Seconds 2

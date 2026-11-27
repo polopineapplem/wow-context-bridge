@@ -4,7 +4,7 @@
 
 Let the AI on your PC see your WoW Forever character, then ask it things like **"What should this character do next?"**
 
-A small in-game addon and a local reader keep an up-to-date snapshot of your character: level, zone, coordinates, quest progress and equipment. A read-only local [MCP](https://modelcontextprotocol.io) server lets desktop AI clients (Claude Desktop, the ChatGPT desktop app, Codex) read it. Everything runs on your own PC: no cloud, no account, no network.
+A small in-game addon and a local reader keep an up-to-date snapshot of your character: level, zone, coordinates, quest progress and equipment. A read-only local [MCP](https://modelcontextprotocol.io) server lets desktop AI clients (Claude Desktop, the ChatGPT desktop app, Codex) read it. Everything runs on your own PC: no cloud, no account, no network. An optional, off-by-default remote upload lets Claude on the web and phone read it too, through a small server you own on Cloudflare's free plan.
 
 ```
 WoW Forever ─▶ LocalContext addon ─▶ game chat log ─▶ start.bat reader ─▶ player.json + history.jsonl
@@ -44,9 +44,10 @@ MCP tools: `get_player_context`, `get_quests`, `get_equipment`, `get_recent_chan
 | Claude Desktop | `install-mcp` configures it on Windows (including the Microsoft Store version) and macOS |
 | Codex / ChatGPT desktop app | `install-mcp` writes `~/.codex/config.toml`; the ChatGPT desktop app's Codex settings use the same file (reported by third parties, not yet verified by us) |
 | Claude Code | `claude mcp add wow-context -- powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\path\to\wow-context-bridge\mcp-server.ps1` |
-| Web or mobile chat | Not supported: they cannot reach files on your PC |
+| Claude on the web (claude.ai) and phone apps | Optional remote upload to your own free Cloudflare server, then a custom connector: see [INSTALL.md](INSTALL.md#optional-claude-on-the-web-and-phone-remote-upload) |
+| ChatGPT website and apps | Not on the Plus plan: OpenAI allows custom MCP servers only on Business/Enterprise/Edu (Pro read-only), and only with OAuth, which this project doesn't offer ([details](docs/REMOTE_MCP.md)) |
 
-The AI client must run on the same computer as the game. Keep `start.bat` / `start.command` running; the MCP server only reads files and collects nothing itself.
+Apart from the optional remote upload, the AI client must run on the same computer as the game. Keep `start.bat` / `start.command` running; the MCP server only reads files and collects nothing itself.
 
 <details>
 <summary>Manual configuration</summary>
@@ -74,6 +75,7 @@ args = ["-NoProfile","-ExecutionPolicy","Bypass","-File","C:\\path\\to\\wow-cont
 - The addon only uses the game's public addon API. It does not read game memory, simulate input, send chat, open ports or contact any server.
 - **The addon turns on the game's chat log, which also records whispers and other chat.** The reader extracts only its own `LCB1` lines and never deletes the log. The log grows by roughly 12 MB per hour of play.
 - `player.json` and `history.jsonl` contain your character name and location. They are git-ignored; don't share them.
+- Remote upload is off unless you run `configure-remote`. When on, it sends the snapshot and recent changes (never the chat log) to your own Cloudflare Worker, protected by a random key stored outside this repository. Anyone with the read key can read the character.
 - Text from the game (quest names, item names) is passed to the AI as data, and the AI is told not to follow it as instructions.
 
 ## Limits
@@ -92,6 +94,8 @@ args = ["-NoProfile","-ExecutionPolicy","Bypass","-File","C:\\path\\to\\wow-cont
   - `python tests/test_install_mcp.py`: client setup.
   - `python tests/test_check_setup.py`: setup checker.
   - `python tests/test_addon.py`: addon, run in Lua 5.1; needs `pip install lupa==2.8`.
+  - `pwsh -File tests/test-remote-push.ps1`: remote upload policy and config.
+  - `node --test remote/test/*.test.mjs`: remote Worker (in-memory Durable Object, not Cloudflare's runtime), plus reader to Worker end to end; needs Node.js 20 or later.
 
   Set `PWSH` to point the Python tests at a specific PowerShell. `test-reader.ps1` contains Chinese text: on Windows PowerShell 5.1, save it as UTF-8 with BOM first, or use PowerShell 7.
 

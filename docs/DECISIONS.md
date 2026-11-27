@@ -121,3 +121,15 @@ macOS 实机测试中，Claude Desktop 启动的 `pwsh mcp-server.ps1` 报 “Ac
 按 T16 要求先调研（`docs/REMOTE_MCP.md`）。OpenAI 官方帮助页：自定义 MCP 服务器面向 Business、Enterprise/Edu；Pro 只有读取/获取权限；Free/Go/Plus 未列出。认证只支持 OAuth 或无认证，没有静态 Bearer 令牌。自定义 GPT Actions 将于 2026-12-11 退役，不作替代。因此按任务说明，在搭建前停止并报告，没有写 Worker 和上传器代码。D20 的选择不撤销，只是阻塞。
 
 待用户决定：(a) 在自己的 ChatGPT 账户确认 Plugins → “+” 是否有 “Add custom MCP server”，有则继续（ChatGPT 需要 OAuth 或无认证地址）；(b) 改为先给 claude.ai 网页/手机用（Claude Pro 支持远程自定义连接器，可用请求头 Bearer 令牌），托管方案不变；(c) 暂不做。托管选 Cloudflare Worker + SQLite Durable Object（KV 每天 1000 次写入不够）。
+
+## D22 — 2026-11-27 — T16 先给 claude.ai 实施：自建 Worker + 可选上传
+
+用户在 D21 后选择“先给 claude.ai 做”。实施（只做了模拟测试，未部署）：
+- 托管：Cloudflare Worker + 一个 SQLite Durable Object（免费方案唯一可用的 DO 类型）。每次上传写 1 行；最坏每天约 2,880 次，远低于每天 10 万请求/10 万行写入。KV 每天 1000 次写入不够，不用。
+- 两把令牌：上传令牌只能上传，读取令牌只能读。Worker 在两个 secret 缺失、过短或相同时拒绝服务（503），不会无认证运行。
+- Claude 连接器的“Request headers”在官方文档中是 beta、限部分组织，所以读取令牌也可以放在 URL 路径（`/mcp/<令牌>`，Authentication 选 No sign-in）。代价：URL 泄露即可读取；文档要求保密，泄露后用 `-NewTokens` 更换。不做 OAuth（ChatGPT 要求 OAuth，但 Plus 本来就用不了，D21）。
+- 本地：上传器在 `start.ps1` 里运行（用户偏好一个启动脚本），默认关闭，只在仓库外的 `remote.json` 存在且 enabled 时上传；推送参数按 D20。上传内容是 player.json 对象和最近 50 条变化记录，不含聊天记录、不含 history 的 digest。上传失败只警告并退避，不影响本地读取。
+- 远程 stale 阈值 240 秒（本地仍为 60 秒），`readerLikelyRunning` 在远程表示 240 秒内收到过上传。
+- `what_next` 的远程副本由脚本从 ADVISOR.md 生成，测试检查一致，ADVISOR.md 仍是唯一来源（D13）。
+- 测试会话把 `WOW_CONTEXT_REMOTE_CONFIG` 指向不存在的文件，避免开发机上的真实配置把测试数据传上去。
+- AGENTS.md 对“上传”的限制相应改为：只允许这一条可选上传路径。

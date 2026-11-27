@@ -38,6 +38,42 @@ AI 助手请看“给 AI 助手的安装步骤”。
 
 下载新版本覆盖原文件夹（或 `git pull`），双击 `start.bat`（会更新插件），然后重启游戏。文件夹位置没变就不用重新运行 `install-mcp.bat`。
 
+## 可选：网页版和手机上的 Claude（远程上传）
+
+上面的一切都只在你的电脑上。网页版 Claude（claude.ai）和手机 App 运行在 Anthropic 的云端，读不到你的电脑，所以这个可选步骤把快照发到**你自己的** Cloudflare 免费服务器上，Claude 再从那里用同样的只读工具读取。不设置就不会上传。
+
+**ChatGPT：** Plus 方案的 ChatGPT 网页和 App 用不了。截至 2026 年 11 月，OpenAI 只给 Business、Enterprise、Edu 开放自定义 MCP 服务器（Pro 只读），而且只支持 OAuth 或无登录，本服务器不提供这两种方式。详见 [docs/REMOTE_MCP.md](docs/REMOTE_MCP.md)。在游戏电脑上，ChatGPT 桌面应用仍可使用上面的本地方式。
+
+需要：一个免费的 [Cloudflare](https://dash.cloudflare.com/sign-up) 账户；游戏电脑上装好 [Node.js](https://nodejs.org) LTS。
+
+1. **部署服务器**（只做一次）。在终端里，从本文件夹运行：
+   ```
+   cd remote
+   npx wrangler@4 login
+   npm run deploy
+   ```
+   `login` 会打开浏览器登录 Cloudflare。`deploy` 会打印你的服务器地址，形如 `https://wow-context-bridge.<你的名字>.workers.dev`。
+2. **连接读取器。** 回到本文件夹，双击 `configure-remote.bat`（Windows）或 `configure-remote.command`（macOS），粘贴地址。它会生成两把随机密钥（一把上传用，一把读取用），保存在你的用户文件夹里，**不在**本仓库里：
+   - Windows：`%APPDATA%\wow-context-bridge\remote.json`
+   - macOS：`~/Library/Application Support/wow-context-bridge/remote.json`
+3. **把密钥存到服务器并测试：**
+   - Windows：`configure-remote.bat -SetSecrets -Check`
+   - macOS：`./configure-remote.command -SetSecrets -Check`
+
+   两行都应显示 `PASS`。
+4. **重启 `start.bat` / `start.command`**，应显示 `Remote upload ON`。等级、区域、任务或装备变化，或者移动超过地图的 3% 时，它会发送快照。最快 30 秒一次，另外每 3 分钟发一次心跳。
+5. **在 Claude 里添加连接器**（claude.ai → Customize → Connectors → **+ Add** → **Add custom connector**）。按 `configure-remote` 打印的设置填写，加 `-ShowConnector` 再运行一次可以重新显示：
+   - Authentication 选 **No sign-in**。
+   - 如果对话框里有 **Request headers**：URL 填 `https://…workers.dev/mcp`，添加 `authorization` 请求头，值为 `Bearer <读取密钥>`。
+   - 没有的话：URL 填 `https://…workers.dev/mcp/<读取密钥>`。
+6. 问 Claude：“这个角色下一步做什么？”超过 4 分钟的数据会标为过期。
+
+**上传的内容：** 和 `player.json` 相同的数据，加上最近 50 条变化记录。从不上传聊天记录。拿到读取密钥或含密钥 URL 的人都能读取你的角色，所以两者都不要外传。泄露了就运行 `configure-remote -NewTokens -SetSecrets`，再重新添加连接器。
+
+**关闭：** 运行 `configure-remote.bat -Disable`（或 `./configure-remote.command -Disable`），然后重启读取器。要删除服务器和上面的数据，在 `remote` 文件夹里运行 `npx wrangler@4 delete`。
+
+**费用：** 免费方案每天 10 万次请求。本工具每天最多约 2,900 次上传，不会产生费用。
+
 ## 卸载
 
 1. 运行 `install-mcp.ps1 -Uninstall`（Windows：`powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install-mcp.ps1 -Uninstall`；macOS：`pwsh -NoProfile -File ./install-mcp.ps1 -Uninstall`），从 AI 客户端配置里移除本工具。
@@ -76,4 +112,5 @@ AI 助手请看“给 AI 助手的安装步骤”。
 5. 请用户完全退出并重开 AI 客户端。
 6. 再运行 `check-setup.ps1 -Json`，直到 `ok=true`。按每项的 `fix` 处理，需要用户动手的步骤要告诉用户。
 7. 回答游戏问题时遵循 `docs/ADVISOR.md`。
-8. 不要提交或上传 `player.json`、`history.jsonl` 和游戏聊天记录；不要删除聊天记录。开发规则见 `AGENTS.md`。
+8. 远程上传（“可选：网页版和手机上的 Claude”）只在用户要求时设置。登录 Cloudflare、部署、添加 Claude 连接器是用户自己的步骤：给出准确的命令。不要把用户的密钥或服务器地址打印或提交到公开的地方。
+9. 不要提交或分享 `player.json`、`history.jsonl` 和游戏聊天记录（用户自己开启的远程上传是唯一例外，它从不发送聊天记录）；不要删除聊天记录。开发规则见 `AGENTS.md`。

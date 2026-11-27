@@ -84,6 +84,15 @@ PowerShell 5.1：只做了代码审查。已加 `Remove-TypeData System.Array` �
 - **未观察到（T7）**：本轮角色基本停在十字路口，没有任务进度、区域或装备变化，`history.jsonl` 只有基线。坐标差分未验证。
 - **未测试**：ChatGPT 桌面应用（Codex，T4）。
 
+## 2026-11-27 模拟测试（第四批，T16 远程上传，Mac + PowerShell 7.7.0 + Node 26）
+
+非实机，也不是 Cloudflare 运行时（Worker 代码在 Node 里运行，Durable Object 存储用内存模拟）。没有部署，没有登录 Cloudflare。
+- `tests/test-remote-push.ps1` 33 项：推送策略（首次、30 秒内等待、变化类型、移动 2.2 不推/3.2 推、心跳 180 秒、仅 capturedAt 变化不算、1 小时持续变化 120 次、1 小时无变化 20 次）、失败退避与上限、配置（默认关闭、enabled=false、拒绝非本机 http、拒绝短令牌、默认路径在仓库外）、上传正文（最近 50 条、不含 digest）、服务器不可达不崩溃。
+- `node --test remote/test/*.test.mjs` 11 项：上传/读取令牌互不通用、secret 末尾换行可容忍、缺失或相同 secret 返回 503、上传校验与 1 MB 上限、MCP 协议（版本协商、通知 202、批量、解析错误、GET 405）、what_next 与 ADVISOR.md 一致、无数据不虚构、工具字段与 mcp-server.ps1 一致、4 分钟过期与上传器停止的 summary。
+- 端到端（同一 Node 测试）：样例聊天日志 → 真实 `start.ps1` → 本机 127.0.0.1 上的 Worker 代码 → MCP 返回角色。覆盖：没有配置不上传；`configure-remote` 生成配置、规范化误粘贴的 `/mcp` 地址；`-Check` 两把令牌通过；开启后首次上传且不含私聊文字；`-Disable` 后不上传；令牌错误时读取器正常退出、打印 401 提示、本地 player.json 照常更新。
+- 原有测试仍通过：test-reader.ps1、test_mcp.py、test_install_mcp.py、test_check_setup.py（增加 remote upload 一项）。test_addon.py 未运行（插件未改动）。
+- 未验证：`wrangler deploy` 实际打包与部署、Cloudflare 上的 CPU/计费实测、`configure-remote -SetSecrets`（真实 wrangler）、claude.ai 自定义连接器（请求头或路径令牌）实际连接、Windows PowerShell 5.1 上传（TLS 1.2 已处理，未实测）。
+
 ## 尚未覆盖
 
 - 多次角色切换、长时间运行、断电、重启和文件轮转压力。

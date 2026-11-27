@@ -10,6 +10,7 @@ PWSH = os.environ.get('PWSH') or shutil.which('pwsh') or shutil.which('powershel
 assert PWSH, 'PowerShell not found; set PWSH'
 tmp = pathlib.Path(tempfile.mkdtemp(prefix='lcb-check-'))
 os.environ['WOW_CONTEXT_RUNTIME_DIR'] = str(tmp / 'runtime')  # never the real ~/Library/Application Support
+os.environ['WOW_CONTEXT_REMOTE_CONFIG'] = str(tmp / 'no-remote.json')  # results must not depend on this machine's remote upload
 
 
 def check(cond, label):

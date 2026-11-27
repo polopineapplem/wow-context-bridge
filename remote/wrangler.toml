@@ -1,0 +1,15 @@
+# Cloudflare Worker for the remote MCP (T16, D22). Deploying is the user's step; see INSTALL.md.
+# No account ID, URL or token belongs in this file: secrets are set with `wrangler secret put`.
+name = "wow-context-bridge"
+main = "src/worker.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+
+[[durable_objects.bindings]]
+name = "CONTEXT"
+class_name = "ContextStore"
+
+# SQLite-backed Durable Objects are the only kind available on the Workers Free plan.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ContextStore"]

@@ -2,13 +2,17 @@
 
 ## 当前状态（每次会话结束时重写本节）
 
-更新：2026-11-27（第四次会话，Mac，T16 调研；**只做了文档调研，没有代码改动，没有实机或模拟测试**）。
+更新：2026-11-27（第四次会话，Mac，T16；**只有模拟测试，没有部署，没有实机**）。
 
-- **T16 暂停（D21）**：OpenAI 官方帮助页写明自定义远程 MCP 面向 Business/Enterprise/Edu，Pro 仅读取，Plus 未列出；认证只有 OAuth 或无认证，没有静态 Bearer 令牌；自定义 GPT Actions 2026-12-11 退役。按任务要求在搭建前停止。调研和来源见 `docs/REMOTE_MCP.md`。
-- 同一个远程 MCP 可以给 claude.ai 网页/手机使用（Claude Pro 支持远程自定义连接器，可在请求头填 Bearer 令牌）。
-- 托管选型：Cloudflare Worker + SQLite Durable Object。D20 推送参数下最坏 2,880 次/天，远低于 DO 免费 10 万请求、10 万行写入；KV 每天 1000 次写入不够。
-- 上一会话（macOS 实机）的状态不变：Claude Desktop 本地 MCP 已实机通过（D18、D19），T4/T7/T10 仍待做。
-- **下一步**：用户三选一——(a) 在 ChatGPT 网页 Plugins → “+” 看是否有“Add custom MCP server”，有就实施 T16（ChatGPT 侧需 OAuth 或无认证地址）；(b) 先给 claude.ai 实施（设计见 REMOTE_MCP.md“如果继续”）；(c) 暂停 T16。本地方面仍是在 ChatGPT 桌面应用的 Codex 里实测（T4）和观察 T7。
+- **ChatGPT 阻塞（D21）**：官方文档显示 Plus 不能加自定义远程 MCP，且 ChatGPT 只支持 OAuth/无认证。另立 T18。
+- **claude.ai 远程 MCP 已实现（D22）**：
+  - `remote/`：Cloudflare Worker + SQLite Durable Object；`POST /upload`（上传令牌）、`POST /mcp` 或 `/mcp/<读取令牌>`（读取令牌）；工具和 what_next 与 `mcp-server.ps1` 相同；远程 stale 240 秒。
+  - `lib/remote.ps1` + `start.ps1`：可选上传，默认关闭；推送策略按 D20（变化/移动>3 → 最快 30 秒一次，3 分钟心跳），失败退避。
+  - `configure-remote.ps1`（.bat/.command）：在仓库外生成 `remote.json` 和两把随机令牌，`-SetSecrets` 调 wrangler 存 secret，`-Check` 测试，`-Disable` 关闭，`-ShowConnector` 显示 Claude 连接器设置。`check-setup` 显示上传开关。
+  - 文档：README/INSTALL 中英文“Optional: Claude on the web and phone”，PROTOCOL、ARCHITECTURE、REMOTE_MCP、VALIDATION、AGENTS.md。
+- **验证（模拟）**：`tests/test-remote-push.ps1` 33 项；`node --test remote/test/*.test.mjs` 11 项（含 start.ps1 → 本机 Worker 代码 → MCP 端到端）；test-reader、test_mcp、test_install_mcp、test_check_setup 通过（PowerShell 7.7.0，Node 26）。test_addon 未跑（插件未改）。
+- **未验证**：真实 `wrangler deploy`/`secret put`、Cloudflare 上运行、claude.ai 连接器（请求头是 beta，可能只能用路径令牌）、Windows PS 5.1 上传。
+- **下一步（用户操作）**：按 INSTALL.md 可选章节：`cd remote` → `npx wrangler@4 login` → `npm run deploy` → `./configure-remote.command`（粘贴地址）→ `./configure-remote.command -SetSecrets -Check` → 重启 start.command → claude.ai 添加连接器 → 问“下一步做什么”。然后把结果记进 VALIDATION（实机），T16 验收。本地方面仍待 T4（ChatGPT 桌面 Codex）和 T7。
 
 ---
 

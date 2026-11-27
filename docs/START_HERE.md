@@ -10,7 +10,7 @@
 | [HANDOFF](../HANDOFF.md) | 当前状态、下一步、MVP 0 实机结果 |
 | [TASKS](TASKS.md) | 任务看板（状态 + 验收条件） |
 | [DECISIONS](DECISIONS.md) | 带日期的决策记录；推翻旧决定只追加 |
-| [REMOTE_MCP](REMOTE_MCP.md) | T16 远程 MCP 调研：ChatGPT/Claude 连接器要求、Cloudflare 免费额度、推送量估算 |
+| [REMOTE_MCP](REMOTE_MCP.md) | T16 远程 MCP：ChatGPT/Claude 连接器要求、Cloudflare 免费额度、推送量估算、实现概要（D21/D22） |
 | [CONTEXT](CONTEXT.md) | 原始诉求、会话背景、用户偏好、范围演变 |
 | [DESIGN](DESIGN.md) | MVP 验收、方案选择和明确未做的事情 |
 | [ARCHITECTURE](ARCHITECTURE.md) | 当前组件、数据流、生命周期和失败行为 |

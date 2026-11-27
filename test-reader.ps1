@@ -4,6 +4,8 @@ $testRoot=Join-Path $tmpBase ('lcb-test-'+[guid]::NewGuid())
 $null=New-Item -ItemType Directory $testRoot
 $log=Join-Path $testRoot 'chat.txt'; $out=Join-Path $testRoot 'player.json'
 $utf8=New-Object Text.UTF8Encoding($false)
+# Never upload test data to a real Worker, even if this machine has remote upload turned on (D22).
+$env:WOW_CONTEXT_REMOTE_CONFIG=Join-Path $testRoot 'no-remote.json'
 $psExe=if (Get-Command powershell.exe -ErrorAction SilentlyContinue) { "powershell.exe" } else { (Get-Process -Id $PID).Path }
 function Run-Reader {
   & $psExe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'start.ps1') -SkipInstall -Once -LogPath $log -OutputPath $out | Out-Null

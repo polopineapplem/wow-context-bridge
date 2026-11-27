@@ -38,6 +38,42 @@ Double-click `start.bat` / `start.command` first (keep the window open), then st
 
 Download the new version over the old folder (or `git pull`), double-click `start.bat` (this updates the addon), then restart the game. If the folder didn't move, you don't need to run `install-mcp.bat` again.
 
+## Optional: Claude on the web and phone (remote upload)
+
+Everything above stays on your PC. Claude on the web (claude.ai) and in the phone apps runs in Anthropic's cloud and cannot read your PC, so this optional step sends your snapshot to a small server **you** own on Cloudflare's free plan. Claude then reads it from there with the same read-only tools. It is off unless you set it up.
+
+**ChatGPT:** the ChatGPT website and apps can't use it on the Plus plan. As of November 2026, OpenAI lists custom MCP servers only for Business, Enterprise and Edu (Pro is read-only), and only with OAuth or no sign-in, which this server doesn't offer. Details: [docs/REMOTE_MCP.md](docs/REMOTE_MCP.md). On the game PC, ChatGPT's desktop app can still use the local setup above.
+
+What you need: a free [Cloudflare](https://dash.cloudflare.com/sign-up) account and [Node.js](https://nodejs.org) LTS on the game PC.
+
+1. **Deploy the server** (once). In a terminal, from this folder:
+   ```
+   cd remote
+   npx wrangler@4 login
+   npm run deploy
+   ```
+   `login` opens your browser to sign in to Cloudflare. `deploy` prints your server address, like `https://wow-context-bridge.<your-name>.workers.dev`.
+2. **Connect the reader.** Back in this folder, double-click `configure-remote.bat` (Windows) or `configure-remote.command` (macOS) and paste the address. It creates two random keys (one for uploading, one for reading) and saves them in your user folder, **not** in this repository:
+   - Windows: `%APPDATA%\wow-context-bridge\remote.json`
+   - macOS: `~/Library/Application Support/wow-context-bridge/remote.json`
+3. **Store the keys on the server and test it:**
+   - Windows: `configure-remote.bat -SetSecrets -Check`
+   - macOS: `./configure-remote.command -SetSecrets -Check`
+
+   Both lines should say `PASS`.
+4. **Restart `start.bat` / `start.command`.** It should say `Remote upload ON`. It sends a snapshot when your level, zone, quests or gear change, or you move more than 3% of the map. It sends at most once every 30 seconds, plus a heartbeat every 3 minutes.
+5. **Add the connector in Claude** (claude.ai, Customize, Connectors, then **+ Add** and **Add custom connector**). Use the settings that `configure-remote` printed. Run it again with `-ShowConnector` to see them again.
+   - Authentication: **No sign-in**.
+   - If the dialog has a **Request headers** section: set the URL to `https://…workers.dev/mcp` and add an `authorization` header with the value `Bearer <read key>`.
+   - Otherwise set the URL to `https://…workers.dev/mcp/<read key>`.
+6. Ask Claude: "What should this character do next?" Data older than 4 minutes is marked stale.
+
+**What is uploaded:** the same data as `player.json`, plus your last 50 recorded changes. Never the chat log. Anyone who has the read key, or the URL that contains it, can read your character, so keep both private. If one leaks, run `configure-remote -NewTokens -SetSecrets` and add the connector again.
+
+**Turning it off:** `configure-remote.bat -Disable` (or `./configure-remote.command -Disable`), then restart the reader. To delete the server and its data, run `npx wrangler@4 delete` in the `remote` folder.
+
+**Cost:** the free plan allows 100,000 requests a day. This tool sends at most about 2,900 uploads a day, so it stays free.
+
 ## Uninstalling
 
 1. Run `install-mcp.ps1 -Uninstall` (Windows: `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install-mcp.ps1 -Uninstall`; macOS: `pwsh -NoProfile -File ./install-mcp.ps1 -Uninstall`) to remove the tool from your AI client configuration.
@@ -76,4 +112,5 @@ For AI agents (Codex, Claude Code, ...) installing this for a user. Run commands
 5. Ask the user to fully quit and reopen their AI client.
 6. Run `check-setup.ps1 -Json` again until `ok=true`. Apply each entry's `fix`, and tell the user about steps only they can do.
 7. For gameplay questions, follow `docs/ADVISOR.md`.
-8. Never commit or upload `player.json`, `history.jsonl` or the game chat log, and never delete the chat log. Development rules are in `AGENTS.md`.
+8. Remote upload ("Optional: Claude on the web and phone") is only for users who ask for it. Signing in to Cloudflare, deploying and adding the Claude connector are the user's steps: give them the exact commands. Never print or commit their keys or server address to a shared place.
+9. Never commit or share `player.json`, `history.jsonl` or the game chat log (the user's own opt-in remote upload is the only exception, and it never sends the chat log), and never delete the chat log. Development rules are in `AGENTS.md`.

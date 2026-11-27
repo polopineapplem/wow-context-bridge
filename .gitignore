@@ -9,3 +9,7 @@ __pycache__/
 work/
 config.local.json
 *.zip
+/remote/node_modules/
+/remote/.wrangler/
+/remote/.dev.vars
+remote.json
