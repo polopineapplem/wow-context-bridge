@@ -76,6 +76,9 @@ stdio、换行分隔的 JSON-RPC；支持 initialize、ping、tools/list、tools
 | get_quests | 完整任务对象；`includeCompletedIds=true` 时附完成任务 ID |
 | get_equipment | 槽位 1–19，附 slotName |
 | get_recent_changes | 最近 `limit`（默认 20，上限 200）条历史 |
+| get_game_profile | `versionCheck`（快照的 client 与 `config/game-profile.json` 比较：match / build_differs / mismatch / unknown / no_profile）和完整版本资料（D23，见 docs/GAME_PROFILE.md） |
+
+`get_player_context` 另含 `gameProfile`（即 `versionCheck`）。`what_next` 在 ADVISOR 正文后附资料摘要；不匹配时 `initialize` 的 instructions 和提示里都有 `VERSION WARNING`。
 
 远程版（`remote/`，D22）工具名、参数、返回字段与上表相同，区别见下一节。
 
@@ -95,7 +98,7 @@ Worker（`remote/src/worker.js`、`core.js`）：
 - `POST /mcp` 或 `POST /mcp/<readToken>`：streamable HTTP，只返回 JSON（不开 SSE，`GET` 返回 405）；通知返回 202；支持批量数组。读取令牌放在 `Authorization: Bearer` 或路径里。上传令牌不能读，读取令牌不能上传。
 - 两个 secret（`UPLOAD_TOKEN`、`READ_TOKEN`）缺失、短于 32 字符或相同时返回 503，不会无认证运行。认证失败 401 + `WWW-Authenticate: Bearer`。
 - `freshness`：`ageSeconds` 按服务器当前时间与 `capturedAt` 计算，`stale` 为 >240 秒或未来 >5 秒；`uploadedAt`、`uploaderLastSeenSecondsAgo`；`readerLikelyRunning` = 240 秒内收到过上传（上传器在读取器里运行）；`summary`：live / 游戏未发送 / 读取器或上传器未发送 / 没有上传过；`source=remote`。
-- `what_next` 正文来自 `remote/src/advisor.js`，由 `remote/scripts/sync-advisor.mjs` 从 docs/ADVISOR.md 生成（`npm run deploy` 先同步；测试检查是否一致）。
+- `what_next` 正文和版本资料来自 `remote/src/advisor.js`，由 `remote/scripts/sync-advisor.mjs` 从 docs/ADVISOR.md 和 config/game-profile.json 生成（`npm run deploy` 先同步；测试检查是否一致）。`get_game_profile`、`gameProfile`、提示摘要和 initialize 警告与本地服务器逐字相同（测试在有 PowerShell 时直接对比 mcp-server.ps1 的输出）。改了资料或 ADVISOR 后需要重新部署 Worker。
 
 ## 输入信任边界
 

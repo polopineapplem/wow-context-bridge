@@ -1,6 +1,6 @@
 # 任务看板
 
-最后更新：2026-11-27（T16 实施、T19 版本资料会话）。取代原 `ROADMAP.md`。状态：`todo` / `doing` / `done` / `blocked`。每次会话结束按 AGENTS.md 的规则更新本文件。
+最后更新：2026-11-27（T16 实施、T19/T21 版本资料会话）。取代原 `ROADMAP.md`。状态：`todo` / `doing` / `done` / `blocked`。每次会话结束按 AGENTS.md 的规则更新本文件。
 
 MVP 目标（2026-11-27 用户确认）：任意 AI（ChatGPT 优先，Claude/Codex 也可）能读取**最新**的角色信息，并回答“这个角色下一步做什么”。轻量、本地存储优先，之后再扩展。
 
@@ -32,7 +32,7 @@ MVP 目标（2026-11-27 用户确认）：任意 AI（ChatGPT 优先，Claude/Co
 | T18 | ChatGPT 远程连接器（OAuth） | blocked（D21：Plus 无自定义 MCP） | 只有用户换到 Business/Enterprise/Edu（或 OpenAI 对 Plus 开放）时再做：Worker 增加 OAuth（CIMD/DCR），ChatGPT 网页能调用工具 |
 | T19 | 顾问按 Forever 版本回答（D23） | done（模拟） | 调研 Forever 并写入 `config/game-profile.json`（事实带来源、置信度、冲突、未验证项）；MCP `get_game_profile`、`gameProfile` 版本检查、`what_next` 附资料摘要；版本/接口不一致时警告；test_mcp 覆盖。实机待做：新提示下真实 AI 回答是否标注“通用经验”“不确定” |
 | T20 | 版本资料随补丁更新 | todo | Forever 每次补丁/热修后按 docs/GAME_PROFILE.md 复查 facts、phase、verifiedBuilds；团队副本开放（报道 2026-12-09）后更新 phase；补查升级速度、随机副本查找器、骑术价格 |
-| T21 | 远程 Worker 支持版本资料 | todo | `remote/` 增加 `get_game_profile`、`gameProfile` 版本检查和 what_next 资料摘要（和 mcp-server.ps1 一致，sync 脚本一并生成），worker 测试覆盖。目前远程 what_next 的 ADVISOR 正文提到 get_game_profile，但远程还没有这个工具 |
+| T21 | 远程 Worker 支持版本资料 | done（模拟） | `remote/` 有 `get_game_profile`、`gameProfile` 版本检查、what_next 资料摘要和 initialize 警告；资料由 sync 脚本打包进 advisor.js；worker 测试覆盖，并与 mcp-server.ps1 的输出逐字对比。未部署（随 T16 部署一起生效） |
 | T9 | 日志量与恢复 | todo | 量化填充开销、落盘延迟、磁盘增长；I/O 异常恢复；同尺寸日志替换识别；不自动删除聊天日志 |
 
 ## 已完成

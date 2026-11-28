@@ -97,6 +97,8 @@ PowerShell 5.1：只做了代码审查。已加 `Remove-TypeData System.Array` �
 
 非实机。`tests/test_mcp.py` 新增 14 项：资料文件结构、每个事实引用已列出的 https 来源、`get_game_profile` 读到中文名称、版本匹配无警告、新 build/其他 locale 只给 notes、version/interface 不一致时 `get_game_profile`/`get_player_context`/`initialize`/`what_next` 都有警告、无快照为 unknown、缺资料文件为 no_profile。`test_install_mcp.py` 检查运行目录副本含资料。reader、check-setup、Lua 插件测试仍通过（PowerShell 7，macOS）。真实 AI 在新提示下的回答未测。
 
+T21（同日，模拟）：`node --test remote/test/*.test.mjs` 13 项通过。新增两项：远程打包的资料与 config/game-profile.json 相同、版本检查（unknown/match/build_differs/mismatch）、initialize 与 what_next 的警告；以及用同一快照分别运行 mcp-server.ps1 和 Worker 代码，`versionCheck` 与 what_next 全文逐字一致（三种 client）。没有部署到 Cloudflare。
+
 ## 尚未覆盖
 
 - 多次角色切换、长时间运行、断电、重启和文件轮转压力。

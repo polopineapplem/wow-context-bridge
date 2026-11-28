@@ -2,7 +2,10 @@
 // not Cloudflare's runtime. Run: node --test remote/test/*.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { tmpdir, homedir } from 'node:os';
+import { join } from 'node:path';
 import { makeEnv, call, UPLOAD_TOKEN, READ_TOKEN } from './harness.mjs';
 import { advisorSource } from '../scripts/sync-advisor.mjs';
 
@@ -79,7 +82,7 @@ test('MCP protocol over HTTP', async () => {
   assert.equal((await mcp(env, rpc(1, 'initialize', { protocolVersion: '1999-01-01' }))).body.result.protocolVersion, '2025-06-18');
   assert.equal((await mcp(env, { jsonrpc: '2.0', method: 'notifications/initialized' })).status, 202);
   const tools = (await mcp(env, rpc(2, 'tools/list'))).body.result.tools;
-  assert.deepEqual(tools.map((t) => t.name).sort(), ['get_equipment', 'get_player_context', 'get_quests', 'get_recent_changes']);
+  assert.deepEqual(tools.map((t) => t.name).sort(), ['get_equipment', 'get_game_profile', 'get_player_context', 'get_quests', 'get_recent_changes']);
   assert.ok(tools.every((t) => t.annotations.readOnlyHint === true));
   assert.equal((await mcp(env, rpc(3, 'tools/call', { name: 'nope' }))).body.error.code, -32602);
   assert.equal((await mcp(env, rpc(4, 'nope'))).body.error.code, -32601);
@@ -160,4 +163,58 @@ test('freshness: stale after 4 minutes, silent uploader reported', async () => {
   // Historical fixture (capturedAt long ago) is never reported live.
   await call(env, '/upload', { token: UPLOAD_TOKEN, body: { snapshot: fixture } });
   assert.equal((await tool(env, 'get_player_context')).freshness.stale, true);
+});
+
+// Game profile (D23): bundled copy of config/game-profile.json, same version check as mcp-server.ps1.
+const profileFile = JSON.parse(readFileSync(new URL('../../config/game-profile.json', import.meta.url), 'utf8'));
+
+test('game profile: bundled, version check and what_next summary', async () => {
+  const env = makeEnv();
+  let gp = await tool(env, 'get_game_profile');
+  assert.deepEqual(gp.profile, profileFile, 'bundled profile equals config/game-profile.json (run sync-advisor)');
+  assert.equal(gp.versionCheck.status, 'unknown', 'no upload yet: cannot confirm version');
+  await call(env, '/upload', { token: UPLOAD_TOKEN, body: { snapshot: live() } });
+  gp = await tool(env, 'get_game_profile');
+  assert.equal(gp.versionCheck.status, 'match');
+  assert.equal(gp.versionCheck.warning, null);
+  assert.equal((await tool(env, 'get_player_context')).gameProfile.matches, true);
+  const init = (await mcp(env, rpc(1, 'initialize', { protocolVersion: '2025-06-18' }))).body.result;
+  assert.ok(init.instructions.includes('get_game_profile') && !init.instructions.includes('VERSION WARNING'));
+  let text = (await mcp(env, rpc(2, 'prompts/get', { name: 'what_next' }))).body.result.messages[0].content.text;
+  assert.ok(text.includes(profileFile.profileId) && text.includes('通用经验，未针对 Forever 验证') && !text.includes('VERSION WARNING'));
+  assert.ok(profileFile.facts.every((f) => text.includes(f.fact)));
+  // Newer build: still matches, with a note. Other version: clear warning everywhere.
+  await call(env, '/upload', { token: UPLOAD_TOKEN, body: { snapshot: { ...live(), client: { ...fixture.client, build: '71999' } } } });
+  gp = await tool(env, 'get_game_profile');
+  assert.equal(gp.versionCheck.status, 'build_differs');
+  assert.equal(gp.versionCheck.matches, true);
+  await call(env, '/upload', { token: UPLOAD_TOKEN, body: { snapshot: { ...live(), client: { ...fixture.client, version: '1.61.0', interface: 16100 } } } });
+  gp = await tool(env, 'get_game_profile');
+  assert.equal(gp.versionCheck.status, 'mismatch');
+  assert.match(gp.versionCheck.warning, /1\.61\.0.*may not fit/);
+  assert.ok((await mcp(env, rpc(3, 'initialize', {}))).body.result.instructions.includes('VERSION WARNING'));
+  text = (await mcp(env, rpc(4, 'prompts/get', { name: 'what_next' }))).body.result.messages[0].content.text;
+  assert.ok(text.includes('VERSION WARNING'));
+});
+
+// Parity with the local server: same versionCheck and same what_next text for the same snapshot.
+const PWSH = process.env.PWSH || [join(homedir(), '.local/bin/pwsh'), 'pwsh', 'powershell.exe'].find((c) => spawnSync(c, ['-NoProfile', '-Command', '1'], { timeout: 30000 }).status === 0);
+test('game profile output matches mcp-server.ps1', { skip: !PWSH && 'PowerShell not found; set PWSH' }, async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'lcb-parity-'));
+  try {
+    for (const client of [fixture.client, { ...fixture.client, build: '71999', locale: 'enUS' }, { ...fixture.client, version: '1.61.0', interface: 16100 }]) {
+      const snap = { ...live(), client };
+      const player = join(dir, 'player.json');
+      writeFileSync(player, JSON.stringify(snap));
+      const reqs = [rpc(1, 'initialize', { protocolVersion: '2025-06-18' }), rpc(2, 'tools/call', { name: 'get_game_profile', arguments: {} }), rpc(3, 'prompts/get', { name: 'what_next' })];
+      const out = spawnSync(PWSH, ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', new URL('../../mcp-server.ps1', import.meta.url).pathname, '-PlayerPath', player],
+        { input: reqs.map((r) => JSON.stringify(r)).join('\n') + '\n', encoding: 'utf8', timeout: 60000 }).stdout;
+      const local = Object.fromEntries(out.split('\n').filter((l) => l.trim()).map((l) => JSON.parse(l)).map((m) => [m.id, m]));
+      const env = makeEnv();
+      await call(env, '/upload', { token: UPLOAD_TOKEN, body: { snapshot: snap } });
+      const remote = { 2: await tool(env, 'get_game_profile'), 3: (await mcp(env, reqs[2])).body.result.messages[0].content.text };
+      assert.deepEqual(remote[2].versionCheck, JSON.parse(local[2].result.content[0].text).versionCheck, `versionCheck for ${JSON.stringify(client)}`);
+      assert.equal(remote[3], local[3].result.messages[0].content.text, 'what_next text identical');
+    }
+  } finally { rmSync(dir, { recursive: true, force: true }); }
 });
