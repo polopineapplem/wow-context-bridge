@@ -2,7 +2,10 @@
 
 ## 当前状态（每次会话结束时重写本节）
 
-更新：2026-11-27（第五次会话，Mac，T19 版本资料；**只做了模拟测试，没有实机测试**）。
+更新：2026-11-27（第五次会话，Mac，T19 版本资料；之后实机部署了 T16 的 Worker）。
+
+- **T16 已实机部署（Cloudflare，真实网络，游戏没开）**：用户登录 wrangler 后，`npm run deploy` 成功；`configure-remote -SetSecrets -Check` 两项 PASS（新 workers.dev 地址约 2 分钟后 HTTPS 才可用，已写进 INSTALL）；重启 start.command 显示 `Remote upload ON` 并发送首份快照；远程读到数据并标为 game not sending。详情见 VALIDATION “实机部署”。地址和令牌只在用户机器的 remote.json 里。
+- **T16 下一步（用户）**：claude.ai → Customize → Connectors → Add custom connector，按 `./configure-remote.command -ShowConnector` 的设置填（先试请求头，没有就用路径令牌）；开游戏玩一会儿，在 claude.ai 问“下一步做什么”，确认数据年龄 < 4 分钟、关游戏后变 stale。然后 T16 验收。
 
 - **T19 完成（模拟，D23）**：调研了 WoW Forever（魔兽世界：无限）。这是 2026-11-04 上线的独立产品线：60 级，没有服务器而是规则集，新增区域/任务/9 个副本/天裔种族/新种族职业组合，天赋和专业都大改，团队副本据报道 2026-12-09 开放。结果写进 `config/game-profile.json`（事实带来源、日期、置信度、冲突、未验证项、可信来源和中英文搜索提示、顾问规则），字段和更新方法见 `docs/GAME_PROFILE.md`。
 - MCP 服务器 0.4.0：新工具 `get_game_profile`；`get_player_context` 多了 `gameProfile` 版本检查；`what_next` 附资料摘要；version/interface 与资料不符时在工具结果、initialize 说明和提示里都给警告。运行时不联网。`docs/ADVISOR.md` 增加资料用法（依据优先级、“通用经验，未针对 Forever 验证”、“不确定”）。
@@ -21,7 +24,7 @@ T16（第四次会话，Mac；**只有模拟测试，没有部署，没有实机
   - 文档：README/INSTALL 中英文“Optional: Claude on the web and phone”，PROTOCOL、ARCHITECTURE、REMOTE_MCP、VALIDATION、AGENTS.md。
 - **验证（模拟）**：`tests/test-remote-push.ps1` 33 项；`node --test remote/test/*.test.mjs` 11 项（含 start.ps1 → 本机 Worker 代码 → MCP 端到端）；test-reader、test_mcp、test_install_mcp、test_check_setup 通过（PowerShell 7.7.0，Node 26）。test_addon 未跑（插件未改）。
 - **未验证**：真实 `wrangler deploy`/`secret put`、Cloudflare 上运行、claude.ai 连接器（请求头是 beta，可能只能用路径令牌）、Windows PS 5.1 上传。
-- **下一步（用户操作）**：按 INSTALL.md 可选章节：`cd remote` → `npx wrangler@4 login` → `npm run deploy` → `./configure-remote.command`（粘贴地址）→ `./configure-remote.command -SetSecrets -Check` → 重启 start.command → claude.ai 添加连接器 → 问“下一步做什么”。然后把结果记进 VALIDATION（实机），T16 验收。本地方面仍待 T4（ChatGPT 桌面 Codex）和 T7。
+- **（已完成到连接器之前，见上）原下一步**：按 INSTALL.md 可选章节：`cd remote` → `npx wrangler@4 login` → `npm run deploy` → `./configure-remote.command`（粘贴地址）→ `./configure-remote.command -SetSecrets -Check` → 重启 start.command → claude.ai 添加连接器 → 问“下一步做什么”。然后把结果记进 VALIDATION（实机），T16 验收。本地方面仍待 T4（ChatGPT 桌面 Codex）和 T7。
 
 ---
 

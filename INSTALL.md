@@ -60,7 +60,7 @@ What you need: a free [Cloudflare](https://dash.cloudflare.com/sign-up) account 
    - Windows: `configure-remote.bat -SetSecrets -Check`
    - macOS: `./configure-remote.command -SetSecrets -Check`
 
-   Both lines should say `PASS`.
+   Both lines should say `PASS`. Right after the first deploy, `FAIL ... SSL connection could not be established` is normal: the new `workers.dev` address needs a few minutes (about 2 in testing) before HTTPS works. Wait, then run it again with only `-Check`.
 4. **Restart `start.bat` / `start.command`.** It should say `Remote upload ON`. It sends a snapshot when your level, zone, quests or gear change, or you move more than 3% of the map. It sends at most once every 30 seconds, plus a heartbeat every 3 minutes.
 5. **Add the connector in Claude** (claude.ai, Customize, Connectors, then **+ Add** and **Add custom connector**). Use the settings that `configure-remote` printed. Run it again with `-ShowConnector` to see them again.
    - Authentication: **No sign-in**.

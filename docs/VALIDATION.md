@@ -93,6 +93,14 @@ PowerShell 5.1：只做了代码审查。已加 `Remove-TypeData System.Array` �
 - 原有测试仍通过：test-reader.ps1、test_mcp.py、test_install_mcp.py、test_check_setup.py（增加 remote upload 一项）。test_addon.py 未运行（插件未改动）。
 - 未验证：`wrangler deploy` 实际打包与部署、Cloudflare 上的 CPU/计费实测、`configure-remote -SetSecrets`（真实 wrangler）、claude.ai 自定义连接器（请求头或路径令牌）实际连接、Windows PowerShell 5.1 上传（TLS 1.2 已处理，未实测）。
 
+## 2026-11-27 实机部署（T16，Mac，Cloudflare）
+
+真实 Cloudflare 账号（新注册，免费计划）与真实网络；游戏当时没开。地址和令牌不记录在仓库。
+- `npx wrangler@4 login`（用户在浏览器授权，wrangler 4.169.0）成功；`npm run deploy` 成功：上传 48.39 KiB（gzip 14.72 KiB），绑定 `env.CONTEXT (ContextStore)` Durable Object；wrangler 提示需要 workers.dev 子域名，但部署时已自动注册并给出地址。
+- `configure-remote -Url ... -SetSecrets -Check`：remote.json 写到 `~/Library/Application Support/wow-context-bridge/`；两个 `wrangler secret put` 成功；第一次 `-Check` 两项都是 `SSL connection could not be established`，约 2 分钟后 HTTPS 才可用，再跑 `-Check` 两项 PASS（当时尚无快照）。已在 INSTALL 中英文说明。
+- 重启 `start.command`（先确认旧进程是本仓库的 start.command 再停）：显示 `Remote upload ON`，`Remote upload: first snapshot sent.`（日志里最后一份快照，序号 38）。之后 `-Check` 读到远程数据，summary 为 “game not sending”、年龄 11510 秒，过期标注正确。运行目录 `config/game-profile.json` 已刷新。
+- 未验证：游玩中远程数据年龄 < 4 分钟；claude.ai 自定义连接器（请求头或路径令牌）；Cloudflare 上的 CPU/计费；Windows PowerShell 5.1 上传。
+
 ## 2026-11-27 版本资料（T19，模拟）
 
 非实机。`tests/test_mcp.py` 新增 14 项：资料文件结构、每个事实引用已列出的 https 来源、`get_game_profile` 读到中文名称、版本匹配无警告、新 build/其他 locale 只给 notes、version/interface 不一致时 `get_game_profile`/`get_player_context`/`initialize`/`what_next` 都有警告、无快照为 unknown、缺资料文件为 no_profile。`test_install_mcp.py` 检查运行目录副本含资料。reader、check-setup、Lua 插件测试仍通过（PowerShell 7，macOS）。真实 AI 在新提示下的回答未测。

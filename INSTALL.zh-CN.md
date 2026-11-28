@@ -60,7 +60,7 @@ AI 助手请看“给 AI 助手的安装步骤”。
    - Windows：`configure-remote.bat -SetSecrets -Check`
    - macOS：`./configure-remote.command -SetSecrets -Check`
 
-   两行都应显示 `PASS`。
+   两行都应显示 `PASS`。第一次部署后马上测试，出现 `FAIL ... SSL connection could not be established` 是正常的：新的 `workers.dev` 地址要几分钟（实测约 2 分钟）HTTPS 才能用。等一下，再只加 `-Check` 运行一次。
 4. **重启 `start.bat` / `start.command`**，应显示 `Remote upload ON`。等级、区域、任务或装备变化，或者移动超过地图的 3% 时，它会发送快照。最快 30 秒一次，另外每 3 分钟发一次心跳。
 5. **在 Claude 里添加连接器**（claude.ai → Customize → Connectors → **+ Add** → **Add custom connector**）。按 `configure-remote` 打印的设置填写，加 `-ShowConnector` 再运行一次可以重新显示：
    - Authentication 选 **No sign-in**。

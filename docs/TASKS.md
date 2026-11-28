@@ -27,7 +27,7 @@ MVP 目标（2026-11-27 用户确认）：任意 AI（ChatGPT 优先，Claude/Co
 | T11 | 一键配置 MCP（install-mcp.bat） | done（模拟） | 自动写入 Claude Desktop（含 Microsoft Store 版路径）和 ~/.codex/config.toml；保留其他设置、备份、可重复、可卸载；实机未测 |
 | T12 | 游戏顾问提示 what_next | done（模拟） | docs/ADVISOR.md 为唯一规则来源；MCP prompts/list、prompts/get；实机效果未测 |
 | T15 | Forever 知识库 | todo | 先调研现有数据来源（如 Questie 是否有 Forever 数据、Forever 攻略站）；补充客户端拿不到的信息：怪物是否精英、掉落与掉率、NPC 位置；来源可追溯，不用经典版数据冒充 Forever |
-| T16 | 云端远程 MCP（D20–D22） | doing（claude.ai 方向已实现并通过模拟测试；待用户部署 Worker 并在 claude.ai 实测；ChatGPT 因 Plus 无自定义 MCP 阻塞，D21） | 本机读取器把快照推到用户自己的 Cloudflare Worker（SQLite Durable Object）；claude.ai 自定义连接器（请求头 Bearer 或路径令牌）调用 get_player_context 并说明数据年龄；推送：等级/区域/子区域/任务/装备变化或坐标移动超过 3 时推送，最快 30 秒一次，无变化 3 分钟心跳；远程 stale 4 分钟；令牌和地址不进仓库；默认关闭。实机验收：部署、-SetSecrets -Check 通过、游玩中远程数据年龄 < 4 分钟、关闭游戏后变为 stale |
+| T16 | 云端远程 MCP（D20–D22） | doing（已实机部署到用户的 Cloudflare，-Check 两项 PASS，上传器发送成功，见 VALIDATION 2026-11-27 实机部署；待 claude.ai 添加连接器、游玩中验证数据年龄；ChatGPT 因 Plus 无自定义 MCP 阻塞，D21） | 本机读取器把快照推到用户自己的 Cloudflare Worker（SQLite Durable Object）；claude.ai 自定义连接器（请求头 Bearer 或路径令牌）调用 get_player_context 并说明数据年龄；推送：等级/区域/子区域/任务/装备变化或坐标移动超过 3 时推送，最快 30 秒一次，无变化 3 分钟心跳；远程 stale 4 分钟；令牌和地址不进仓库；默认关闭。实机验收：部署、-SetSecrets -Check 通过、游玩中远程数据年龄 < 4 分钟、关闭游戏后变为 stale |
 | T17 | Forever 任务细节（插件 0.2.0） | done（实机） | 等级、分类、目标说明、地图位置从客户端读取，api 探测结果见 VALIDATION（D19） |
 | T18 | ChatGPT 远程连接器（OAuth） | blocked（D21：Plus 无自定义 MCP） | 只有用户换到 Business/Enterprise/Edu（或 OpenAI 对 Plus 开放）时再做：Worker 增加 OAuth（CIMD/DCR），ChatGPT 网页能调用工具 |
 | T19 | 顾问按 Forever 版本回答（D23） | done（模拟） | 调研 Forever 并写入 `config/game-profile.json`（事实带来源、置信度、冲突、未验证项）；MCP `get_game_profile`、`gameProfile` 版本检查、`what_next` 附资料摘要；版本/接口不一致时警告；test_mcp 覆盖。实机待做：新提示下真实 AI 回答是否标注“通用经验”“不确定” |
