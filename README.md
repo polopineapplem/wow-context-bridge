@@ -35,7 +35,9 @@ Requirements: Windows or macOS, and the WoW Forever client (verified on 1.60.1.7
 - Recent changes: level ups, zone changes, quest progress, gear swaps.
 - Freshness: how old the snapshot is, and whether the reader is still running.
 
-MCP tools: `get_player_context`, `get_quests`, `get_equipment`, `get_recent_changes`, plus a `what_next` prompt that follows the advisor rules in [docs/ADVISOR.md](docs/ADVISOR.md).
+MCP tools: `get_player_context`, `get_quests`, `get_equipment`, `get_recent_changes`, `get_game_profile`, plus a `what_next` prompt that follows the advisor rules in [docs/ADVISOR.md](docs/ADVISOR.md).
+
+WoW Forever is its own game line, not Classic Era or Retail. [`config/game-profile.json`](config/game-profile.json) is a static, sourced profile of Forever for client 1.60.1 (interface 16001): verified facts with confidence levels, differences from Classic Era and Retail, trusted guide sources and advisor rules. The advisor uses it, and the server warns when the live client version does not match the profile. Nothing is fetched at runtime. See [docs/GAME_PROFILE.md](docs/GAME_PROFILE.md) (Chinese) for how to update it after a patch.
 
 ## Supported AI clients
 

@@ -44,6 +44,7 @@ check(srv['args'][-1].endswith('mcp-server.ps1') and srv['args'][:4] == ['-NoPro
 copy = runtime / 'mcp-server.ps1'
 check(srv['args'][-1] == str(copy) and copy.read_bytes() == (ROOT / 'mcp-server.ps1').read_bytes(), 'runtime dir: clients run a fresh copy of the server (macOS protected folders, D18)')
 check((runtime / 'docs' / 'ADVISOR.md').read_bytes() == (ROOT / 'docs' / 'ADVISOR.md').read_bytes(), 'runtime copy includes ADVISOR.md for what_next')
+check((runtime / 'config' / 'game-profile.json').read_bytes() == (ROOT / 'config' / 'game-profile.json').read_bytes(), 'runtime copy includes the game profile (D23)')
 check(cfg['mcpServers']['other']['command'] == 'x' and cfg['globalShortcut'] == 'Ctrl+Space', 'other Claude settings preserved')
 check(isinstance(srv['args'], list) and isinstance(cfg['mcpServers']['other']['args'], list), 'arrays stay arrays (PowerShell 5.1 Count/value bug guarded)')
 toml = codex.read_text(encoding='utf-8')

@@ -2,7 +2,16 @@
 
 ## 当前状态（每次会话结束时重写本节）
 
-更新：2026-11-27（第四次会话，Mac，T16；**只有模拟测试，没有部署，没有实机**）。
+更新：2026-11-27（第五次会话，Mac，T19 版本资料；**只做了模拟测试，没有实机测试**）。
+
+- **T19 完成（模拟，D23）**：调研了 WoW Forever（魔兽世界：无限）。这是 2026-11-04 上线的独立产品线：60 级，没有服务器而是规则集，新增区域/任务/9 个副本/天裔种族/新种族职业组合，天赋和专业都大改，团队副本据报道 2026-12-09 开放。结果写进 `config/game-profile.json`（事实带来源、日期、置信度、冲突、未验证项、可信来源和中英文搜索提示、顾问规则），字段和更新方法见 `docs/GAME_PROFILE.md`。
+- MCP 服务器 0.4.0：新工具 `get_game_profile`；`get_player_context` 多了 `gameProfile` 版本检查；`what_next` 附资料摘要；version/interface 与资料不符时在工具结果、initialize 说明和提示里都给警告。运行时不联网。`docs/ADVISOR.md` 增加资料用法（依据优先级、“通用经验，未针对 Forever 验证”、“不确定”）。
+- 验证：test_mcp（新增 14 项）、test_install_mcp、test_check_setup、test-reader、test_addon（lupa 2.8，临时 venv）全部通过，PowerShell 7 / macOS。**真实 AI 在新提示下的回答没有测**；已在运行的 Claude Desktop 需要完全退出重开（并在 macOS 上运行一次 start.command 或 install-mcp.command 刷新 Application Support 副本）才会加载新服务器。
+- 不确定的：整体升级速度、是否有随机副本查找器、骑术价格、新区域/副本的中文正式名和准确等级、build 71139 的官方说明。
+- 同日另一会话的 T16（claude.ai 远程 MCP，D22）状态见下面一段；`remote/src/advisor.js` 已用 sync 脚本重新生成，但远程 Worker 还没有 `get_game_profile`（T21）。
+- **下一步**：在 Mac 上刷新副本、重开 Claude Desktop，问一次“下一步做什么”，确认回答引用版本资料、标注通用经验、不编坐标（T19 实机部分）；12-09 后更新 phase（T20）。其余仍是 T4、T7、T10。
+
+T16（第四次会话，Mac；**只有模拟测试，没有部署，没有实机**）。
 
 - **ChatGPT 阻塞（D21）**：官方文档显示 Plus 不能加自定义远程 MCP，且 ChatGPT 只支持 OAuth/无认证。另立 T18。
 - **claude.ai 远程 MCP 已实现（D22）**：

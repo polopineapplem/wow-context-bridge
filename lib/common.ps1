@@ -140,7 +140,7 @@ function Get-RuntimeDir([string]$checkout) {
 }
 
 # Returns the mcp-server.ps1 path AI clients should run. Outside the checkout it is a copy,
-# refreshed here (with docs/ADVISOR.md for the what_next prompt) unless -NoCopy.
+# refreshed here (with docs/ADVISOR.md for the what_next prompt and config/game-profile.json) unless -NoCopy.
 function Sync-McpServer([string]$checkout,[switch]$NoCopy) {
   $dir=Get-RuntimeDir $checkout
   $src=[IO.Path]::GetFullPath((Join-Path $checkout 'mcp-server.ps1'))
@@ -150,6 +150,12 @@ function Sync-McpServer([string]$checkout,[switch]$NoCopy) {
   if (!(Test-Path -LiteralPath $docs)) { $null=New-Item -ItemType Directory -Path $docs -Force }
   Copy-Item -LiteralPath $src -Destination $dst -Force
   Copy-Item -LiteralPath (Join-Path $checkout 'docs/ADVISOR.md') -Destination (Join-Path $docs 'ADVISOR.md') -Force
+  $profileSrc=Join-Path $checkout 'config/game-profile.json'
+  if (Test-Path -LiteralPath $profileSrc) {
+    $cfg=Join-Path $dir 'config'
+    if (!(Test-Path -LiteralPath $cfg)) { $null=New-Item -ItemType Directory -Path $cfg -Force }
+    Copy-Item -LiteralPath $profileSrc -Destination (Join-Path $cfg 'game-profile.json') -Force
+  }
   return $dst
 }
 

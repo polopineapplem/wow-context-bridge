@@ -1,4 +1,4 @@
-param([string]$PlayerPath, [string]$HistoryPath)
+param([string]$PlayerPath, [string]$HistoryPath, [string]$ProfilePath)
 # Read-only MCP server (stdio, newline-delimited JSON-RPC) over player.json / history.jsonl.
 # No network, no game actions. Keep ASCII-only for Windows PowerShell 5.1.
 # Never write to stdout except protocol messages: diagnostics go to stderr.
@@ -9,11 +9,12 @@ $ProgressPreference='SilentlyContinue'
 try { Remove-TypeData System.Array -ErrorAction Stop } catch { }
 if (!$PlayerPath) { $PlayerPath=Join-Path $PSScriptRoot 'player.json' }
 if (!$HistoryPath) { $HistoryPath=Join-Path (Split-Path -Parent ([IO.Path]::GetFullPath($PlayerPath))) 'history.jsonl' }
+if (!$ProfilePath) { $ProfilePath=Join-Path (Join-Path $PSScriptRoot 'config') 'game-profile.json' }
 $utf8=New-Object Text.UTF8Encoding($false)
 $stdin=New-Object IO.StreamReader([Console]::OpenStandardInput(),$utf8)
 $stdout=New-Object IO.StreamWriter([Console]::OpenStandardOutput(),$utf8)
 $stdout.AutoFlush=$true; $stdout.NewLine="`n"
-$serverVersion='0.3.0'
+$serverVersion='0.4.0'
 $supportedVersions=@('2025-11-25','2025-06-18','2025-03-26','2024-11-05')
 $staleAfter=60
 $slotNames=@{1='head';2='neck';3='shoulder';4='shirt';5='chest';6='waist';7='legs';8='feet';9='wrist';10='hands';11='finger1';12='finger2';13='trinket1';14='trinket2';15='back';16='mainHand';17='offHand';18='ranged';19='tabard'}
@@ -30,6 +31,52 @@ function Get-AdvisorText {
   if ($a -lt 0 -or $b -le $a) { return $advisorFallback }
   $a+='<!-- prompt:start -->'.Length
   return $t.Substring($a,$b-$a).Trim()
+}
+
+# Static game profile (config/game-profile.json, D23): verified Forever facts, sources and advisor rules.
+# Read from disk only; never fetched from the network.
+function Read-GameProfile {
+  if (!(Test-Path -LiteralPath $ProfilePath)) { return $null }
+  try { return ([IO.File]::ReadAllText($ProfilePath,$utf8) | ConvertFrom-Json) } catch { Log "game profile unreadable: $($_.Exception.Message)"; return $null }
+}
+
+# Compares the live client (player.json client.*) with the profile's client section.
+function Get-VersionCheck($p,$prof) {
+  $c=$null; if ($p -and $p.PSObject.Properties['client']) { $c=$p.client }
+  if (!$prof) { return [pscustomobject]@{status='no_profile';matches=$false;warning="Game profile not found at $ProfilePath. Advice has no verified Forever facts; do not fill gaps from Classic Era or Retail memory.";profileId=$null;client=$c} }
+  $pc=$prof.client
+  $pv=[string]$pc.version; $pi=@($pc.interface | ForEach-Object { [string]$_ }); $pb=@($pc.verifiedBuilds | ForEach-Object { [string]$_ }); $pl=@($pc.verifiedLocales | ForEach-Object { [string]$_ })
+  $want="$pv (interface $($pi -join '/'), builds $($pb -join '/'))"
+  $notes=@()
+  if (!$c -or !$c.version) {
+    $status='unknown'; $ok=$false
+    $warning="No client version in the snapshot; cannot confirm that game profile $($prof.profileId) ($want) fits this client."
+  } elseif ([string]$c.version -ne $pv -or ($pi -notcontains [string]$c.interface)) {
+    $status='mismatch'; $ok=$false
+    $warning="Client $($c.version).$($c.build) (interface $($c.interface)) does not match game profile $($prof.profileId) ($want). The profile's facts and advice may not fit this game version; tell the user and rely on the client data."
+  } else {
+    $ok=$true; $warning=$null; $status='match'
+    if ($pb -notcontains [string]$c.build) { $status='build_differs'; $notes+="Build $($c.build) is not one the profile was checked against ($($pb -join '/')); hotfixes may have changed some numbers." }
+  }
+  if ($c -and $c.locale -and $pl.Count -and ($pl -notcontains [string]$c.locale)) { $notes+="Locale $($c.locale): names in the profile were checked for $($pl -join '/') only; use the client's names." }
+  [pscustomobject]@{status=$status;matches=$ok;warning=$warning;notes=$notes;profileId=$prof.profileId;profileUpdatedAt=$prof.updatedAt;profileClient=$pc;client=$c}
+}
+
+# Short text form of the profile for the what_next prompt and initialize instructions.
+function Get-ProfileSummary($prof,$check) {
+  if (!$prof) { return '' }
+  $l=New-Object Collections.Generic.List[string]
+  $l.Add("## Game profile $($prof.profileId) (config/game-profile.json, updated $($prof.updatedAt))")
+  $l.Add([string]$prof.product.summary)
+  if ($prof.phase) { $l.Add("Phase: $($prof.phase.current) [$($prof.phase.confidence)]") }
+  if ($check -and $check.warning) { $l.Add("VERSION WARNING: $($check.warning)") }
+  foreach ($n in @($check.notes)) { if ($n) { $l.Add("Note: $n") } }
+  $l.Add('Rules:')
+  foreach ($r in @($prof.advisorRules)) { $l.Add("- $r") }
+  $l.Add('Facts (confidence):')
+  foreach ($f in @($prof.facts)) { $l.Add("- [$($f.confidence)] $($f.topic): $($f.fact)") }
+  $l.Add('Call get_game_profile for sources, differences from Classic Era/Retail, conflicts and search hints.')
+  return ($l -join "`n")
 }
 
 function Log([string]$m) { [Console]::Error.WriteLine("[wow-context] $m") }
@@ -120,6 +167,7 @@ function Tool-Context($a) {
     quests=$quests; questCount=$quests.Count; questLogMayBeIncomplete=$p.questLogMayBeIncomplete
     completedQuestCount=$completedCount; equipment=$equipped
     recentChanges=(Read-History 5); capabilities=$p.capabilities; questApi=$p.api; errors=@($p.errors)
+    gameProfile=(Get-VersionCheck $p (Read-GameProfile))
   }
 }
 
@@ -135,6 +183,12 @@ function Tool-Equipment($a) {
   $p=Read-Player
   if (!$p -or !$p.character) { return No-Data $p }
   [pscustomobject]@{status=$p.status;freshness=(Get-Freshness $p);notice=$notice;equipmentCapability=$p.capabilities.equipment;equipment=(Equipment-List $p)}
+}
+
+function Tool-Profile($a) {
+  $prof=Read-GameProfile
+  $p=$null; try { $p=Read-Player } catch { }
+  [pscustomobject]@{versionCheck=(Get-VersionCheck $p $prof);profile=$prof}
 }
 
 function Tool-Changes($a) {
@@ -157,12 +211,14 @@ $tools=@(
   @{name='get_recent_changes';title='Recent changes';annotations=$ro
     inputSchema=@{type='object';properties=@{limit=@{type='integer';minimum=1;maximum=200;description='Number of most recent change entries (default 20).'}}}
     description='Recent changes recorded by the local reader: level ups, zone changes, quest added/removed/progress, equipment swaps. Oldest first.'}
+  @{name='get_game_profile';title='WoW Forever game profile';annotations=$ro;inputSchema=$empty
+    description='Static, researched profile of WoW Forever for this client version: verified facts with sources and confidence, differences from Classic Era and Retail, known conflicts, trusted guide sources with search hints, and advisor rules. versionCheck says whether the live client matches the profile. Use it instead of Classic Era or Retail memory.'}
 )
 $prompts=@(
   @{name='what_next';title='What should this character do next';description='Game advisor: reads the latest character context and suggests what to do next (quests, drops, turn-ins, gear).'
     arguments=@(@{name='focus';description='Optional focus, e.g. leveling, gear, gold, a specific quest.';required=$false})}
 )
-$handlers=@{get_player_context='Tool-Context';get_quests='Tool-Quests';get_equipment='Tool-Equipment';get_recent_changes='Tool-Changes'}
+$handlers=@{get_player_context='Tool-Context';get_quests='Tool-Quests';get_equipment='Tool-Equipment';get_recent_changes='Tool-Changes';get_game_profile='Tool-Profile'}
 
 Log "started; player=$PlayerPath"
 while ($null -ne ($line=$stdin.ReadLine())) {
@@ -175,7 +231,9 @@ while ($null -ne ($line=$stdin.ReadLine())) {
       'initialize' {
         $v='2025-06-18'
         if ($req.params -and $supportedVersions -contains [string]$req.params.protocolVersion) { $v=[string]$req.params.protocolVersion }
-        Send @{jsonrpc='2.0';id=$id;result=@{protocolVersion=$v;capabilities=@{tools=@{listChanged=$false};prompts=@{listChanged=$false}};serverInfo=@{name='wow-context-bridge';version=$serverVersion};instructions="Read-only WoW Forever character context from the local game PC. Call get_player_context first. If freshness.stale is true, say how old the data is. For 'what should I do next' questions, follow the what_next prompt (docs/ADVISOR.md). $notice"}}
+        $instr="Read-only WoW Forever character context from the local game PC. Call get_player_context first. If freshness.stale is true, say how old the data is. For 'what should I do next' questions, follow the what_next prompt (docs/ADVISOR.md). WoW Forever is its own game line (level 60, new zones, quests, talents), not Classic Era or Retail: call get_game_profile for verified facts and sources, and do not fill gaps from Classic or Retail memory. If gameProfile.matches is false, warn that advice may not fit this client version. $notice"
+        try { $chk=Get-VersionCheck (Read-Player) (Read-GameProfile); if ($chk.warning) { $instr+=" VERSION WARNING: $($chk.warning)" } } catch { }
+        Send @{jsonrpc='2.0';id=$id;result=@{protocolVersion=$v;capabilities=@{tools=@{listChanged=$false};prompts=@{listChanged=$false}};serverInfo=@{name='wow-context-bridge';version=$serverVersion};instructions=$instr}}
       }
       'ping' { Send @{jsonrpc='2.0';id=$id;result=@{}} }
       'tools/list' { Send @{jsonrpc='2.0';id=$id;result=@{tools=$tools}} }
@@ -183,6 +241,10 @@ while ($null -ne ($line=$stdin.ReadLine())) {
       'prompts/get' {
         if ([string]$req.params.name -ne 'what_next') { Send @{jsonrpc='2.0';id=$id;error=@{code=-32602;message="Unknown prompt: $($req.params.name)"}}; break }
         $text=Get-AdvisorText
+        $prof=Read-GameProfile
+        $pl=$null; try { $pl=Read-Player } catch { }
+        $chk=Get-VersionCheck $pl $prof
+        if ($prof) { $text+="`n`n"+(Get-ProfileSummary $prof $chk) } else { $text+="`n`nVERSION WARNING: $($chk.warning)" }
         if ($req.params.arguments -and $req.params.arguments.focus) { $text+="`n`nFocus on: $($req.params.arguments.focus)" }
         Send @{jsonrpc='2.0';id=$id;result=@{description='WoW Forever next-step advisor';messages=@(@{role='user';content=@{type='text';text=$text}})}}
       }

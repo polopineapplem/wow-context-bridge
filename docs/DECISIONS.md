@@ -133,3 +133,13 @@ macOS 实机测试中，Claude Desktop 启动的 `pwsh mcp-server.ps1` 报 “Ac
 - `what_next` 的远程副本由脚本从 ADVISOR.md 生成，测试检查一致，ADVISOR.md 仍是唯一来源（D13）。
 - 测试会话把 `WOW_CONTEXT_REMOTE_CONFIG` 指向不存在的文件，避免开发机上的真实配置把测试数据传上去。
 - AGENTS.md 对“上传”的限制相应改为：只允许这一条可选上传路径。
+
+## D23 — 2026-11-27 — 版本资料：静态 JSON + MCP 工具 + 提示摘要
+
+问题：AI 容易把经典怀旧服或正式服的知识套到 Forever 上。做法选最轻的：
+- 调研结果写成仓库里的静态文件 `config/game-profile.json`（字段和更新方法见 `docs/GAME_PROFILE.md`）。服务器只读磁盘，运行时不联网；保持只读。
+- `mcp-server.ps1` 新增 `get_game_profile` 工具；`get_player_context` 增加 `gameProfile`（版本检查）；`what_next` 在 ADVISOR 正文后附资料摘要；`initialize` 的说明提到该工具，版本不匹配时附警告。
+- 版本检查：`client.version` 或 `client.interface` 与资料不同 → `mismatch` + 警告；只是 build 不在 `verifiedBuilds` → 仍算匹配，给提示（热修通常不改系统）；locale 不同只提示名称可能不同。
+- macOS 运行目录副本（D18）同时复制资料。
+- 不选：把事实写进 ADVISOR.md（版本数据和提示规则混在一起，难以按版本替换）；运行时联网查询（违反只读/本地原则，也不可审计）。
+- 事实只用自己的话总结并附来源、日期和置信度；不复制攻略原文。

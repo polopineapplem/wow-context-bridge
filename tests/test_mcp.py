@@ -56,7 +56,7 @@ r = run(player, [init, {'jsonrpc': '2.0', 'method': 'notifications/initialized'}
 check(r[1]['result']['protocolVersion'] == '2025-06-18' and r[1]['result']['capabilities']['tools'] is not None, 'initialize negotiates version and tools capability')
 check(None not in r and len(r) == 8, 'notification gets no response; stdout is pure JSON-RPC')
 names = sorted(t['name'] for t in r[2]['result']['tools'])
-check(names == ['get_equipment', 'get_player_context', 'get_quests', 'get_recent_changes'], 'tools/list exposes the 4 read-only tools')
+check(names == ['get_equipment', 'get_game_profile', 'get_player_context', 'get_quests', 'get_recent_changes'], 'tools/list exposes the 5 read-only tools')
 check(all(t['annotations']['readOnlyHint'] for t in r[2]['result']['tools']), 'all tools marked readOnlyHint')
 ctx = payload(r[3])
 check(ctx['character']['name'] == snap['character']['name'] and ctx['character']['level'] == snap['character']['level'], 'context returns Chinese character name and level')
@@ -101,6 +101,44 @@ r = run(player, [init, call(2, 'get_player_context')], history)
 q0, q1 = payload(r[2])['quests'][:2]
 check(q0['header'] == '贫瘠之地' and q0['level'] == 21 and q0['suggestedGroup'] == 5 and q0['objectivesText'] == '把皮革交给某人。' and q0['poi']['x'] == 40.0, 'context passes Forever quest details through')
 check('header' not in q1 and 'objectivesText' not in q1 and payload(r[2])['questApi']['GetQuestLogQuestText'] is True, 'missing details stay absent; API probe exposed')
+
+# Game profile (config/game-profile.json, D23)
+profile = json.loads((ROOT / 'config' / 'game-profile.json').read_text(encoding='utf-8'))
+check(profile['client']['version'] == '1.60.1' and 16001 in profile['client']['interface'] and profile['advisorRules'] and all(f['confidence'] in ('high', 'medium', 'low') for f in profile['facts']), 'profile file has client version, rules and confidence levels')
+ids = {s['id'] for s in profile['sources']}
+check(all(set(f['sources']) <= ids for f in profile['facts']) and all(s['url'].startswith('https://') for s in profile['sources']), 'every fact cites a listed https source')
+player.write_text(json.dumps(live, ensure_ascii=False), encoding='utf-8')
+r = run(player, [init, call(2, 'get_game_profile'), call(3, 'get_player_context'),
+                 {'jsonrpc': '2.0', 'id': 4, 'method': 'prompts/get', 'params': {'name': 'what_next'}}])
+gp = payload(r[2])
+check(gp['profile']['profileId'] == profile['profileId'] and gp['profile']['product']['names']['zhCN'] == '魔兽世界：无限', 'get_game_profile loads the profile with Chinese names')
+check(gp['versionCheck']['status'] == 'match' and gp['versionCheck']['matches'] is True and not gp['versionCheck']['warning'], 'matching client: no version warning')
+check(payload(r[3])['gameProfile']['matches'] is True, 'context carries gameProfile version check')
+check('get_game_profile' in r[1]['result']['instructions'] and 'VERSION WARNING' not in r[1]['result']['instructions'], 'initialize instructions mention get_game_profile, no warning when matching')
+text = r[4]['result']['messages'][0]['content']['text']
+check('游戏顾问' in text and profile['profileId'] in text and '通用经验，未针对 Forever 验证' in text and '不确定' in text and 'VERSION WARNING' not in text, 'what_next includes profile summary and labelling rules')
+check(all(f['fact'] in text for f in profile['facts']), 'what_next lists every profile fact')
+# New build only: still matches, with a note.
+other = json.loads(json.dumps(live)); other['client'] = dict(live['client'], build='71999', locale='enUS')
+player.write_text(json.dumps(other, ensure_ascii=False), encoding='utf-8')
+vc = payload(run(player, [init, call(2, 'get_game_profile')])[2])['versionCheck']
+check(vc['status'] == 'build_differs' and vc['matches'] is True and any('71999' in n for n in vc['notes']) and any('enUS' in n for n in vc['notes']), 'new build and other locale: match with notes')
+# Different version/interface: clear warning everywhere.
+other['client'] = dict(live['client'], version='1.61.0', interface=16100)
+player.write_text(json.dumps(other, ensure_ascii=False), encoding='utf-8')
+r = run(player, [init, call(2, 'get_game_profile'), call(3, 'get_player_context'),
+                 {'jsonrpc': '2.0', 'id': 4, 'method': 'prompts/get', 'params': {'name': 'what_next'}}])
+vc = payload(r[2])['versionCheck']
+check(vc['status'] == 'mismatch' and vc['matches'] is False and '1.61.0' in vc['warning'] and 'may not fit' in vc['warning'], 'version mismatch returns a clear warning')
+check(payload(r[3])['gameProfile']['status'] == 'mismatch', 'context shows the mismatch')
+check('VERSION WARNING' in r[1]['result']['instructions'] and 'VERSION WARNING' in r[4]['result']['messages'][0]['content']['text'], 'mismatch warning in initialize instructions and what_next')
+# No client info, and missing profile.
+vc = payload(run(tmp / 'missing.json', [init, call(2, 'get_game_profile')])[2])['versionCheck']
+check(vc['status'] == 'unknown' and vc['matches'] is False, 'no snapshot: version check unknown')
+args = [PWSH, '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', str(SERVER), '-PlayerPath', str(player), '-ProfilePath', str(tmp / 'nope.json')]
+out = subprocess.run(args, input=(json.dumps(init) + '\n' + json.dumps(call(2, 'get_game_profile')) + '\n').encode(), capture_output=True, timeout=60).stdout.decode('utf-8')
+vc = json.loads(json.loads(out.splitlines()[1])['result']['content'][0]['text'])['versionCheck']
+check(vc['status'] == 'no_profile' and 'Classic' in vc['warning'], 'missing profile file reported, not invented')
 
 print('Fixture tests only; not a live game test.')
 shutil.rmtree(tmp)

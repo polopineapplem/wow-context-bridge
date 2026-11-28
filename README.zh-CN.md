@@ -35,7 +35,9 @@ WoW Forever ─▶ LocalContext 插件 ─▶ 游戏聊天日志 ─▶ start.ba
 - 最近变化：升级、换区域、任务进度、换装备。
 - 新鲜度：快照是多久以前的、读取器是否还在运行。
 
-MCP 工具：`get_player_context`、`get_quests`、`get_equipment`、`get_recent_changes`；另有 `what_next` 提示，遵循 [docs/ADVISOR.md](docs/ADVISOR.md) 的顾问规则。
+MCP 工具：`get_player_context`、`get_quests`、`get_equipment`、`get_recent_changes`、`get_game_profile`；另有 `what_next` 提示，遵循 [docs/ADVISOR.md](docs/ADVISOR.md) 的顾问规则。
+
+WoW Forever（魔兽世界：无限）是独立的产品线，不是经典怀旧服，也不是正式服。[`config/game-profile.json`](config/game-profile.json) 是针对客户端 1.60.1（Interface 16001）整理的静态版本资料：带来源和置信度的事实、与经典怀旧服和正式服的区别、可信攻略来源和顾问规则。顾问按它回答；实时客户端版本与资料不一致时，服务器会给出警告。运行时不联网。Forever 更新后如何修改见 [docs/GAME_PROFILE.md](docs/GAME_PROFILE.md)。
 
 ## 支持的 AI 客户端
 

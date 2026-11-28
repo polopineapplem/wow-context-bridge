@@ -93,6 +93,10 @@ PowerShell 5.1：只做了代码审查。已加 `Remove-TypeData System.Array` �
 - 原有测试仍通过：test-reader.ps1、test_mcp.py、test_install_mcp.py、test_check_setup.py（增加 remote upload 一项）。test_addon.py 未运行（插件未改动）。
 - 未验证：`wrangler deploy` 实际打包与部署、Cloudflare 上的 CPU/计费实测、`configure-remote -SetSecrets`（真实 wrangler）、claude.ai 自定义连接器（请求头或路径令牌）实际连接、Windows PowerShell 5.1 上传（TLS 1.2 已处理，未实测）。
 
+## 2026-11-27 版本资料（T19，模拟）
+
+非实机。`tests/test_mcp.py` 新增 14 项：资料文件结构、每个事实引用已列出的 https 来源、`get_game_profile` 读到中文名称、版本匹配无警告、新 build/其他 locale 只给 notes、version/interface 不一致时 `get_game_profile`/`get_player_context`/`initialize`/`what_next` 都有警告、无快照为 unknown、缺资料文件为 no_profile。`test_install_mcp.py` 检查运行目录副本含资料。reader、check-setup、Lua 插件测试仍通过（PowerShell 7，macOS）。真实 AI 在新提示下的回答未测。
+
 ## 尚未覆盖
 
 - 多次角色切换、长时间运行、断电、重启和文件轮转压力。
